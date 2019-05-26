@@ -1,7 +1,0 @@
-MODULE := semtech_loramac_arch
-
-SRCS := utilities.c
-
-CFLAGS += -Wno-sign-compare
-
-include $(RIOTBASE)/Makefile.base

@@ -1,5 +1,0 @@
-FEATURES_PROVIDED += periph_hwrng
-
-BOARDS_WITHOUT_HWRNG += nucleo32-l031
-
--include $(RIOTCPU)/stm32_common/Makefile.features

@@ -1,3 +1,0 @@
-MODULE := semtech_loramac_crypto
-
-include $(RIOTBASE)/Makefile.base

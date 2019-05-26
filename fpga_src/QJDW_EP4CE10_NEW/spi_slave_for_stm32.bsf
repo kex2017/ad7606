@@ -1,0 +1,267 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 400 320)
+	(text "spi_slave_for_stm32" (rect 5 0 91 12)(font "Arial" ))
+	(text "inst" (rect 8 288 20 300)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "clk_100m" (rect 0 0 37 12)(font "Arial" ))
+		(text "clk_100m" (rect 21 27 58 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "clk_20m" (rect 0 0 34 12)(font "Arial" ))
+		(text "clk_20m" (rect 21 43 55 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "rst_n" (rect 0 0 21 12)(font "Arial" ))
+		(text "rst_n" (rect 21 59 42 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "ad9238_chip_a_dclk" (rect 0 0 81 12)(font "Arial" ))
+		(text "ad9238_chip_a_dclk" (rect 21 75 102 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 1))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "ad9238_chip_a_data[AD_BIT_WIDTH-1..0]" (rect 0 0 178 12)(font "Arial" ))
+		(text "ad9238_chip_a_data[AD_BIT_WIDTH-1..0]" (rect 21 91 199 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 3))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "ad9238_chip_a_cha1_otr" (rect 0 0 100 12)(font "Arial" ))
+		(text "ad9238_chip_a_cha1_otr" (rect 21 107 121 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 1))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "spi_sclk_form_stm32" (rect 0 0 88 12)(font "Arial" ))
+		(text "spi_sclk_form_stm32" (rect 21 123 109 135)(font "Arial" ))
+		(line (pt 0 128)(pt 16 128)(line_width 1))
+	)
+	(port
+		(pt 0 144)
+		(input)
+		(text "spi_csn_form_stm32" (rect 0 0 87 12)(font "Arial" ))
+		(text "spi_csn_form_stm32" (rect 21 139 108 151)(font "Arial" ))
+		(line (pt 0 144)(pt 16 144)(line_width 1))
+	)
+	(port
+		(pt 0 160)
+		(input)
+		(text "spi_mosi_form_stm32" (rect 0 0 92 12)(font "Arial" ))
+		(text "spi_mosi_form_stm32" (rect 21 155 113 167)(font "Arial" ))
+		(line (pt 0 160)(pt 16 160)(line_width 1))
+	)
+	(port
+		(pt 0 176)
+		(input)
+		(text "sdram_buf0_idle" (rect 0 0 67 12)(font "Arial" ))
+		(text "sdram_buf0_idle" (rect 21 171 88 183)(font "Arial" ))
+		(line (pt 0 176)(pt 16 176)(line_width 1))
+	)
+	(port
+		(pt 0 192)
+		(input)
+		(text "sdram_buf1_idle" (rect 0 0 66 12)(font "Arial" ))
+		(text "sdram_buf1_idle" (rect 21 187 87 199)(font "Arial" ))
+		(line (pt 0 192)(pt 16 192)(line_width 1))
+	)
+	(port
+		(pt 0 208)
+		(input)
+		(text "sdram_buf_rdat[15..0]" (rect 0 0 89 12)(font "Arial" ))
+		(text "sdram_buf_rdat[15..0]" (rect 21 203 110 215)(font "Arial" ))
+		(line (pt 0 208)(pt 16 208)(line_width 3))
+	)
+	(port
+		(pt 0 224)
+		(input)
+		(text "sdram_buf_data_avalid" (rect 0 0 95 12)(font "Arial" ))
+		(text "sdram_buf_data_avalid" (rect 21 219 116 231)(font "Arial" ))
+		(line (pt 0 224)(pt 16 224)(line_width 1))
+	)
+	(port
+		(pt 0 240)
+		(input)
+		(text "sdram_idle" (rect 0 0 43 12)(font "Arial" ))
+		(text "sdram_idle" (rect 21 235 64 247)(font "Arial" ))
+		(line (pt 0 240)(pt 16 240)(line_width 1))
+	)
+	(port
+		(pt 0 256)
+		(input)
+		(text "one_second_clk" (rect 0 0 64 12)(font "Arial" ))
+		(text "one_second_clk" (rect 21 251 85 263)(font "Arial" ))
+		(line (pt 0 256)(pt 16 256)(line_width 1))
+	)
+	(port
+		(pt 384 32)
+		(output)
+		(text "ad9238_chip_a_clk" (rect 0 0 76 12)(font "Arial" ))
+		(text "ad9238_chip_a_clk" (rect 287 27 363 39)(font "Arial" ))
+		(line (pt 384 32)(pt 368 32)(line_width 1))
+	)
+	(port
+		(pt 384 48)
+		(output)
+		(text "spi_miso_to_stm32" (rect 0 0 79 12)(font "Arial" ))
+		(text "spi_miso_to_stm32" (rect 284 43 363 55)(font "Arial" ))
+		(line (pt 384 48)(pt 368 48)(line_width 1))
+	)
+	(port
+		(pt 384 64)
+		(output)
+		(text "sdram_buf0_wdat[15..0]" (rect 0 0 96 12)(font "Arial" ))
+		(text "sdram_buf0_wdat[15..0]" (rect 267 59 363 71)(font "Arial" ))
+		(line (pt 384 64)(pt 368 64)(line_width 3))
+	)
+	(port
+		(pt 384 80)
+		(output)
+		(text "sdram_buf0_waddr[31..0]" (rect 0 0 102 12)(font "Arial" ))
+		(text "sdram_buf0_waddr[31..0]" (rect 261 75 363 87)(font "Arial" ))
+		(line (pt 384 80)(pt 368 80)(line_width 3))
+	)
+	(port
+		(pt 384 96)
+		(output)
+		(text "sdram_buf0_wr" (rect 0 0 64 12)(font "Arial" ))
+		(text "sdram_buf0_wr" (rect 299 91 363 103)(font "Arial" ))
+		(line (pt 384 96)(pt 368 96)(line_width 1))
+	)
+	(port
+		(pt 384 112)
+		(output)
+		(text "sdram_buf1_wdat[15..0]" (rect 0 0 95 12)(font "Arial" ))
+		(text "sdram_buf1_wdat[15..0]" (rect 268 107 363 119)(font "Arial" ))
+		(line (pt 384 112)(pt 368 112)(line_width 3))
+	)
+	(port
+		(pt 384 128)
+		(output)
+		(text "sdram_buf1_waddr[31..0]" (rect 0 0 101 12)(font "Arial" ))
+		(text "sdram_buf1_waddr[31..0]" (rect 262 123 363 135)(font "Arial" ))
+		(line (pt 384 128)(pt 368 128)(line_width 3))
+	)
+	(port
+		(pt 384 144)
+		(output)
+		(text "sdram_buf1_wr" (rect 0 0 63 12)(font "Arial" ))
+		(text "sdram_buf1_wr" (rect 300 139 363 151)(font "Arial" ))
+		(line (pt 384 144)(pt 368 144)(line_width 1))
+	)
+	(port
+		(pt 384 160)
+		(output)
+		(text "sdram_buf_raddr[31..0]" (rect 0 0 95 12)(font "Arial" ))
+		(text "sdram_buf_raddr[31..0]" (rect 268 155 363 167)(font "Arial" ))
+		(line (pt 384 160)(pt 368 160)(line_width 3))
+	)
+	(port
+		(pt 384 176)
+		(output)
+		(text "sdram_buf_rd" (rect 0 0 59 12)(font "Arial" ))
+		(text "sdram_buf_rd" (rect 304 171 363 183)(font "Arial" ))
+		(line (pt 384 176)(pt 368 176)(line_width 1))
+	)
+	(port
+		(pt 384 192)
+		(output)
+		(text "fpga_interrupt" (rect 0 0 55 12)(font "Arial" ))
+		(text "fpga_interrupt" (rect 308 187 363 199)(font "Arial" ))
+		(line (pt 384 192)(pt 368 192)(line_width 1))
+	)
+	(parameter
+		"AD_BIT_WIDTH"
+		"12"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"CHANNEL_NUM"
+		"2"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"READ_DAT"
+		"0110"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"READ_REG"
+		"0101"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"WRITE_REG"
+		"0001"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"IDLE"
+		"000001"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"RW_BIT_DAT"
+		"000010"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"RW_SUCCESS"
+		"000100"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"ZLPY"
+		"-14"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"AD9238_CHA0"
+		"0000"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(parameter
+		"AD9238_CHA1"
+		"0001"
+		""
+		(type "PARAMETER_UNSIGNED_BIN")	)
+	(drawing
+		(rectangle (rect 16 16 368 288)(line_width 1))
+	)
+	(annotation_block (parameter)(rect 400 -64 500 16))
+)

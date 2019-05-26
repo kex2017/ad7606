@@ -1,0 +1,48 @@
+#ifndef TYPE_ALIAS_H_
+#define TYPE_ALIAS_H_
+
+#define MAX_CHANNEL 16
+#define MAX_FPGA_DATA_LEN (20480 + 4096) //24k
+#define MAX_PARTIAL_DISCHARGE_CURVE_DATA_LEN  (MAX_FPGA_DATA_LEN)
+#define MAX_PRPD_DATA_LEN  (MAX_FPGA_DATA_LEN)
+
+#define MASTER_ADDR 0X0001
+#define BASE_CHANNEL 0X0010
+
+#ifndef boolean
+typedef enum{
+   SD_TRUE = 0,
+   SD_FALSE = 1
+}boolean;
+#endif
+
+typedef enum {
+    DEVICEOK,
+    DEVTIMEERR,
+    GPSINFOERR,
+    ZGBINITERR,
+    FPGAINITERR,
+    SAMPLEERR,
+    TRANSFERERR,
+    MD5ERR,
+    FILECHAOSERR,
+    DEVBUSYERR,
+	DEVNODATA,
+	DEVNOSUP,
+	FPGAUPERR,
+	ATEMP_OFF_LINE,
+	BTEMP_OFF_LINE,
+	ABTEMP_OFF_LINE,
+	CTEMP_OFF_LINE,
+	ACTEMP_OFF_LINE,
+	BCTEMP_OFF_LINE,
+	ABCTEMP_OFF_LINE,
+} dev_status_t;
+
+typedef enum _FileType{
+    FPGA_CE10,
+    ARM,
+    FPGA_CE30,
+}FileType;
+
+#endif

@@ -1,11 +1,12 @@
 #include "shell_commands.h"
 #include "shell.h"
 #include "board.h"
-#include "data_processor.h"
 #include "data_transfer.h"
 #include "heart_beat.h"
 #include "daq.h"
 #include "sc_daq.h"
+#include "gps_sync.h"
+#include "over_current.h"
 
 static const shell_command_t shell_commands[] = {
         {   "daq", "daq ops", daq_command},
@@ -23,8 +24,9 @@ int main(void)
     ext_pm_init();
     daq_init();
 
+    gps_service_init();
     data_transfer_init();
-    data_processor_thread_init();
+    over_current_service_init();
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);

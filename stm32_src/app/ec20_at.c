@@ -4,28 +4,24 @@
 #include "xtimer.h"
 #include "msg.h"
 #include "heart_beat.h"
-#include "data_transfer.h"
 #include "periph/rtt.h"
-#include "dev_cfg.h"
 
 #define ENABLE_DEBUG    (1)
 #include "debug.h"
 
-//static char p_ip_addr[20] = "www.klec.com.cn";
-//static uint16_t p_port = 6890;
+static char p_ip_addr[20] = "www.klec.com.cn";
+static uint16_t p_port = 6890;
 
-char p_ip_addr[20] = {0};//"112.244.250.234"
-static uint16_t p_port = 0;//6891
+//char p_ip_addr[20] = {0};//"112.244.250.234"
+//static uint16_t p_port = 0;//6891
 
-void get_dev_ip_port(void){
-	server_info_t *server_info = get_dev_server_info();
-    p_port = server_info->port;
-    memset(p_ip_addr, 0, sizeof(p_ip_addr));
-    sprintf(p_ip_addr, "%d.%d.%d.%d", server_info->ip[0], server_info->ip[1], server_info->ip[2],server_info->ip[3]);
-    DEBUG("get server ip as:%s, server port as:%d\n", p_ip_addr, p_port);
-}
-
-
+//void get_dev_ip_port(void){
+//	server_info_t *server_info = get_dev_server_info();
+//    p_port = server_info->port;
+//    memset(p_ip_addr, 0, sizeof(p_ip_addr));
+//    sprintf(p_ip_addr, "%d.%d.%d.%d", server_info->ip[0], server_info->ip[1], server_info->ip[2],server_info->ip[3]);
+//    DEBUG("get server ip as:%s, server port as:%d\n", p_ip_addr, p_port);
+//}
 
 static void delay_ms(int ms)
 {
@@ -295,7 +291,7 @@ void ec20_at_setup(ec20_dev_t* dev, at_cfg_t* p_at_cfg, gpio_t p_reset_pin)
     dev->reset_pin = p_reset_pin;
     gpio_init(dev->reset_pin, GPIO_OUT);
     gpio_clear(dev->reset_pin);
-    get_dev_ip_port();
+//    get_dev_ip_port();
     for(uint8_t i = 0; i < 4 ; i++){
     	 dev->ip[i] = p_ip_addr[i];
     }

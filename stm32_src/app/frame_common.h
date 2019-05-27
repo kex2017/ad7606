@@ -15,15 +15,11 @@
 #define SET_ERROR (0x00)
 #define SET_SUCCESS (0xFF)
 #define SPARE (0x00)
-#define FRAME_HEADER_MAX_LEN 24
 #define FRAME_CS_LEN 0X02
+#define FRAME_HEADER_MAX_LEN 1
 
 #define FRAME_DATA_LEN_INDEX 0x02
 #define FRAME_TYPE_INDEX 21
-
-
-
-#define RESET_ARM_TYPE (0x0000)
 
 #define MAX_REQ_DATA_LEN 200
 #define MAX_RSP_DATA_INFO_LEN 32
@@ -31,7 +27,6 @@
 #define BUFFER_LEN 1024
 #define MAX_REQ_FRAME_LEN (FRAME_HEADER_MAX_LEN + MAX_REQ_DATA_LEN + FRAME_CS_LEN)
 #define MAX_RSP_FRAME_LEN (FRAME_HEADER_MAX_LEN + MAX_RSP_DATA_INFO_LEN + MAX_RSP_DATA_LEN + FRAME_CS_LEN)
-
 
 typedef struct _header {
     uint8_t starter1;
@@ -50,14 +45,7 @@ typedef struct _frame_req {
 }frame_req_t;
 
 
-unsigned short RTU_CRC(unsigned char*puchMsg, unsigned short usDataLen);
+uint8_t byte_sum_checksum(uint8_t *data, uint32_t length);
 
-uint16_t frame_set_device_time_rsp_encode(uint8_t cmd_status, uint32_t cur_timestamp, uint8_t* out);
-
-uint16_t frame_decode(uint8_t *frame_data, frame_req_t *master_frame_req);
-
-uint16_t frame_set_time_req_decode(uint8_t *data, frame_req_t *req);
-
-void test_encode_decode(void);
 
 #endif /* FRAME_COMMON_H_ */

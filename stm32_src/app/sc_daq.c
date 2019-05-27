@@ -92,18 +92,7 @@ int daq_command(int argc, char **argv)
             printf("%02x ", g_data_buf[i]);
     }
     else if (strncmp(argv[1], "test", 6) == 0) {
-        uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
-        uint32_t data_len = 0;
-        if(daq_spi_sample_done_check(channel)){
-            data_len = daq_spi_get_data_len(channel);
-            daq_spi_sample_data_read(channel, g_data_buf, 0, data_len);
-            printf("read data len is %ld data as:\r\n", data_len);
-            for(uint32_t i = 0; i < data_len; i++){
-                printf("%02x ",g_data_buf[i]);
-            }
-            puts("\r\n");
-        }
-        LOG_INFO("sample not done yet!");
+        daq_spi_read_test_reg();
     }
    else {
       daq_usage_help();

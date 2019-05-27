@@ -104,10 +104,10 @@ void daq_spi_read_test_reg(void)
 
     read_value = daq_spi_read_reg(0, FPGA_READ_TEST_REG);
     if(read_value == test_reg_fix){
-        LOG_INFO("succeed!!!  read value is %0x%04x\r\n", read_value);
+        LOG_INFO("succeed!!!  read value is 0x%04x\r\n", read_value);
     }
     else{
-        LOG_ERROR("failed!!!  read value is %0x%04x\r\n", read_value);
+        LOG_ERROR("failed!!!  read value is 0x%04x\r\n", read_value);
     }
 }
 

@@ -27,7 +27,7 @@ USEMODULE += kldaq_fpga_spi
 USEMODULE += klfpga
 USEMODULE += kldaq
 USEMODULE += hashes
-
+USEMODULE += periph_gpio_irq
 
 USEMODULE += shell
 USEMODULE += shell_commands

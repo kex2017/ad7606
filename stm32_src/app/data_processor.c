@@ -370,17 +370,47 @@ void save_rms_data(msg_t * msg,  float* rms)
 	memcpy(rms, msg->content.ptr, sizeof(float)*9);
 }
 
+
+#define ONE_SECOND_CNT_L 9
+#define ONE_SECOND_CNT_H 8
+
+#define CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H 10
+#define CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L 11
+
+#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H 12
+#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L 13
 void *data_processor(void *arg)
 {
     (void)arg;
-    msg_t recv_msg;
-    float rms_data[9];
+//    msg_t recv_msg;
+//    float rms_data[9];
+    uint16_t tmp_l = 0, tmp_h = 0;
+    uint32_t one_second_cnt = 0, chan0_cnt = 0, chan1_cnt = 0;
+
+    printf("read reg 14 value is 0x%04x\r\n",daq_spi_read_reg(0, 14));
     while (1) {
-        msg_receive(&recv_msg);
-        save_rms_data(&recv_msg,rms_data);
-        upgrade_all_dev_data_info(rms_data);
-        LOG_INFO("Save data success");
-        delay_ms(500);
+        puts("-------------------------------------------------------");
+        tmp_l = daq_spi_read_reg(0, ONE_SECOND_CNT_L)&0xFFFF;
+        tmp_h = daq_spi_read_reg(0, ONE_SECOND_CNT_H)&0xFFFF;
+        one_second_cnt = (uint32_t)tmp_h << 16 | tmp_l;
+        printf("one second cnt is %ld\r\n", one_second_cnt);
+
+
+        tmp_l = daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L) & 0xFFFF;
+        tmp_h = daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H) & 0xFFFF;
+        chan0_cnt = (uint32_t)tmp_h << 16 | tmp_l;
+        printf("chan0 cnt is %ld\r\n", chan0_cnt);
+
+        tmp_l = daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L) & 0xFFFF;
+        tmp_h = daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H) & 0xFFFF;
+        chan1_cnt = (uint32_t)tmp_h << 16 | tmp_l;
+        printf("chan0 cnt is %ld\r\n", chan1_cnt);
+        puts("-------------------------------------------------------");
+//        msg_receive(&recv_msg);
+//        save_rms_data(&recv_msg,rms_data);
+//        upgrade_all_dev_data_info(rms_data);
+//        LOG_INFO("Save data success");
+        delay_ms(2000);
     }
 }
 

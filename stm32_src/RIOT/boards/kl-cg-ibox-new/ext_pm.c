@@ -18,6 +18,7 @@
 
 #define  FPGA_SW1_PIN      GPIO_PIN(PORT_G, 13)
 #define  FPGA_SW2_PIN      GPIO_PIN(PORT_G, 14)
+
 void ext_pm_ctrl_init(void)
 {
    gpio_init(FPGA_SW1_PIN, GPIO_OUT);

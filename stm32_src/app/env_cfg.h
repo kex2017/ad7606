@@ -24,6 +24,13 @@ void cfg_set_device_channel_threshold(uint8_t channel, uint32_t threshold);
 uint32_t cfg_get_device_channel_threshold(uint8_t channel);
 
 
+void cfg_set_device_longitude(double longitude);
+double cfg_get_device_longitude(void);
+void cfg_set_device_latitude(double latitude);
+double cfg_get_device_latitude(void);
+void cfg_set_device_height(double height);
+double cfg_get_device_height(void);
+
 void load_device_cfg(void);
 void update_device_cfg(void);
 void display_device_cfg(void);

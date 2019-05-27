@@ -59,6 +59,9 @@ USEMODULE += mtd
 USEMODULE += mtd_spi_nor
 USEMODULE += auto_init_storage
 
+USEPKG += minmea
+INCLUDE += $(RIOTPKG)/minmea/
+
 GIT_VERSION := $(shell git --no-pager describe --tags --dirty --always)
 
 CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\" \

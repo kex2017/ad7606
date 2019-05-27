@@ -25,6 +25,9 @@ typedef struct _device_cfg {
 	uint16_t device_id;
 	uint8_t version[32];
 	uint32_t data_interval;
+    double longitude;
+    double latitude;
+    double height;
 	uint32_t channel_threshold[MAX_CHANNEL];
 
 } device_cfg_t;
@@ -81,6 +84,38 @@ uint32_t cfg_get_device_channel_threshold(uint8_t channel)
 	return g_device_cfg.device_cfg.channel_threshold[channel];
 }
 
+
+void cfg_set_device_longitude(double longitude)
+{
+    g_device_cfg.device_cfg.longitude = longitude;
+}
+
+double cfg_get_device_longitude(void)
+{
+    return g_device_cfg.device_cfg.longitude;
+}
+
+void cfg_set_device_latitude(double latitude)
+{
+    g_device_cfg.device_cfg.latitude = latitude;
+}
+
+double cfg_get_device_latitude(void)
+{
+    return g_device_cfg.device_cfg.latitude;
+}
+
+void cfg_set_device_height(double height)
+{
+    g_device_cfg.device_cfg.height = height;
+}
+
+double cfg_get_device_height(void)
+{
+    return g_device_cfg.device_cfg.height;
+}
+
+
 #define DEFAULT_THRESHOLD (100000000U)
 void load_device_cfg(void)
 {
@@ -91,6 +126,9 @@ void load_device_cfg(void)
 			.flag = FLAG_OFF,
 			.device_id = 1001,
 			.version = "kl_fp_1.0.0",
+			.longitude = 120.33,
+            .latitude = 30.33,
+            .height = 12.7,
 			.data_interval = 60,
 	};
 

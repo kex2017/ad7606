@@ -1,0 +1,5 @@
+if SWD
+device stm32f103ze
+speed 4000
+loadfile ./bin/kl-cg-ibox-new/bootloader.hex 
+exit

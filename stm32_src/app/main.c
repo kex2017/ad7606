@@ -2,8 +2,8 @@
 #include "shell.h"
 #include "board.h"
 #include "data_processor.h"
+#include "data_transfer.h"
 #include "heart_beat.h"
-
 #include "daq.h"
 #include "sc_daq.h"
 
@@ -23,6 +23,7 @@ int main(void)
     ext_pm_init();
     daq_init();
 
+    data_transfer_init();
     data_processor_thread_init();
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];

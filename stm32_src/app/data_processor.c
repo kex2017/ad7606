@@ -3,19 +3,13 @@
 #include "msg.h"
 #include "timex.h"
 #include "xtimer.h"
+#include "x_delay.h"
 #include "frame_common.h"
 #include "periph/rtt.h"
 #include "daq.h"
 #include "frame_encode.h"
 #include "frame_handler.h"
 #include "periph/gpio.h"
-
-
-static void delay_ms(int ms)
-{
-	xtimer_ticks32_t last_wakeup = xtimer_now();
-	xtimer_periodic_wakeup(&last_wakeup, US_PER_SEC/1000 * ms);
-}
 
 #define  FPGA_INT1         GPIO_PIN(PORT_E, 2)
 
@@ -32,12 +26,12 @@ void on_int(void *arg)
 void set_default_threshold_rate(void)
 {
     for(uint8_t i = 0; i < HF_CHAN_NUM; i++){
-        daq_spi_set_threshold(i, DEFAULT_THRESHOLD);
+        daq_spi_set_threshold(i, 200);
         daq_spi_set_change_rate(i, DEFAULT_CHANGERATE);
     }
 }
 
-uint8_t g_curve_buf[CURVE_LEN] = {0};
+uint16_t g_curve_buf[CURVE_LEN] = {0};
 uint32_t g_chan_cnt[HF_CHAN_NUM] = {0};
 void *data_processor(void *arg)
 {
@@ -52,12 +46,20 @@ void *data_processor(void *arg)
         for(uint8_t channel = 0; channel < HF_CHAN_NUM; channel++){
             if(daq_spi_sample_done_check(channel)){
                 data_len = daq_spi_get_data_len(channel);
-                for(uint16_t len = 0; len < data_len; len++){
-                    daq_spi_sample_data_read(channel, g_curve_buf, 0, data_len);
-                    g_chan_cnt[channel] = daq_spi_chan_cnt_since_plus(channel);
-                    LOG_INFO("read chan %d cnt is %d", channel, g_chan_cnt[channel]);
-                    daq_spi_clear_data_done_flag(channel);
+                LOG_INFO("data len is %d", data_len);
+                daq_spi_sample_data_read(channel, (uint8_t*)g_curve_buf, 0, data_len);
+                LOG_INFO("read data is:");
+                for(uint16_t i = 0; i < data_len; i++){
+                    printf("%d ", g_curve_buf[i]);
+                    if(i+1 % 10 == 0){
+                        puts("");
+                    }
                 }
+                puts("");
+                g_chan_cnt[channel] = daq_spi_chan_cnt_since_plus(channel);
+                LOG_INFO("read chan %d cnt is %d", channel, g_chan_cnt[channel]);
+                daq_spi_clear_data_done_flag(channel);
+                LOG_INFO("read ok clear now");
             }
         }
         delay_ms(2000);

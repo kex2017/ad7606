@@ -1,4 +1,5 @@
 #include "frame_decode.h"
+#include "log.h"
 
 uint16_t frame_uint16_decode(uint8_t *data)
 {
@@ -34,6 +35,29 @@ uint16_t frame_header_decode(uint8_t* data, frame_header_t* header)
    return FRAME_HEADER_LEN;
 }
 
+uint16_t frame_time_ctrl_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+	master_frame_req->frame_req.time_info.type = frame_data[0];
+	master_frame_req->frame_req.time_info.timestamp = frame_uint32_decode(frame_data+1);
+
+	return sizeof(uint8_t)+sizeof(uint32_t);
+}
+
+uint16_t  frame_on_need_decode(void)
+{
+return 0;
+}
+
+uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+	master_frame_req->frame_req.channel_info.type = frame_data[0];
+	master_frame_req->frame_req.channel_info.channel = frame_data[1];
+	master_frame_req->frame_req.channel_info.threshold = frame_uint16_decode(frame_data+2);
+	master_frame_req->frame_req.channel_info.change_rate = frame_uint16_decode(frame_data+4);
+
+	return sizeof(uint16_t)+sizeof(uint32_t);
+}
+
 uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
     uint32_t index = 0;
@@ -41,8 +65,25 @@ uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_re
 
     index += frame_func_code_decode(frame_data + index, &master_frame_req->func_code);
     switch(master_frame_req->func_code) {
+    case  TIME_CTRL_REQ:
+    	ret = frame_time_ctrl_decode( frame_data+index, master_frame_req);
+	break;
+    case GET_RUNNING_STATE_REQ:
+    	ret = frame_on_need_decode();
+    	break;
+    case GET_CHANNEL_INFO_REQ:
+    	ret = frame_on_need_decode();
+	break;
+    case SET_CHANNEL_INFO_REQ:
+    	ret = frame_set_channel_info_decode(frame_data+index, master_frame_req);
+	break;
+    case GET_DEV_INFO_REQ:
+    	ret = frame_on_need_decode();
+	break;
+    default:
+    	LOG_ERROR("Receive error command type %02x",master_frame_req->func_code );
+    	break;
     }
-
     return ret;
 }
 

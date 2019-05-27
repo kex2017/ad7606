@@ -1,7 +1,7 @@
 if SWD
 device stm32f103ze
 speed 4000
-loadfile ./bin/kl-cg-ibox-new/fault_location.hex 
+loadfile ./bin/kl-stm32-fl/fault_location.hex 
 r
 g
 exit

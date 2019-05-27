@@ -1,0 +1,3 @@
+[submodule "stm32_src/RIOT"]
+	path = stm32_src/RIOT
+	url = http://www.klec.com.cn:10000/embedded/RIOT.git

@@ -1,3 +1,0 @@
-## the cpu to build for
-export CPU = stm32f1
-export CPU_MODEL = stm32f103re

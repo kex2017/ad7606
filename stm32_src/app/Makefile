@@ -4,7 +4,7 @@ APPLICATION = fault_location
 RIOTBASE ?= $(CURDIR)/../RIOT/
 
 # If no BOARD is found in the environment, use this default:
-BOARD ?= kl-cg-ibox-new
+BOARD ?= kl-stm32-fl
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the

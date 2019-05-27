@@ -1,4 +1,4 @@
 [submodule "RIOT"]
 	path = RIOT
 	url = http://www.klec.com.cn:10000/embedded/RIOT
-	branch = 2019.01-branch-stm32f103
+	branch = 2019.01-branch-stm32f103-fl

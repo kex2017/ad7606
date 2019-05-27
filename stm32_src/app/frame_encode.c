@@ -1,5 +1,6 @@
 #include "frame_encode.h"
 #include "frame_common.h"
+#include "env_cfg.h"
 
 uint16_t frame_double_encode(uint8_t *data,double value)
 {
@@ -86,6 +87,38 @@ uint16_t frame_header_encode(uint8_t *data, uint16_t salve_addr, uint16_t rsp_le
     return FRAME_HEADER_LEN;
 }
 
+uint16_t frame_cs_encode(uint8_t *data, uint8_t cs)
+{
+    return frame_uint8_encode(data,cs);
+}
 
+uint16_t frame_time_ctrl_data_encode(uint8_t *data, uint8_t errorcode, uint32_t timestamp)
+{
+	uint16_t index = 0;
 
+	index += frame_header_encode(data+index, cfg_get_device_id(), TIME_CTRL_RSP_DATA_LEN);
+	index += frame_uint8_encode(data+index, TIME_CTRL_RSP);
+	index += frame_uint8_encode(data+index, errorcode);
+	index += frame_uint32_encode(data+index, timestamp);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return index;
+}
+
+uint16_t frame_get_running_state_encode(uint8_t *data, uint8_t errorcode, uint32_t temp, uint32_t humidity, uint32_t voltage, uint8_t work , uint32_t timestamp )
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data+index, cfg_get_device_id(), GET_RUNNING_STATE_RSP_DATA_LEN);
+	index += frame_uint8_encode(data+index, GET_RUNNING_STATE_RSP);
+	index += frame_uint8_encode(data+index, errorcode);
+	index += frame_uint32_encode(data+index, temp);
+	index += frame_uint32_encode(data+index, humidity);
+	index += frame_uint32_encode(data+index, voltage);
+	index += frame_uint8_encode(data+index, work);
+	index += frame_uint32_encode(data+index, timestamp);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return 0;
+}
 

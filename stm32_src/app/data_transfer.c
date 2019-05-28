@@ -145,7 +145,7 @@ void *data_transfer_service(void *arg)
 #define DATA_TRANSFER_PRIO (4)
 kernel_pid_t data_transfer_pid = KERNEL_PID_UNDEF;
 #define DATA_TRANSFER_STACKSIZE          (THREAD_STACKSIZE_MAIN)
-static char data_transfer_stack[DATA_TRANSFER_STACKSIZE*3];
+static char data_transfer_stack[DATA_TRANSFER_STACKSIZE*2];
 kernel_pid_t data_transfer_init(void)
 {
     if (data_transfer_pid == KERNEL_PID_UNDEF) {

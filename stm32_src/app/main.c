@@ -8,6 +8,7 @@
 #include "env_cfg.h"
 #include "gps_sync.h"
 #include "over_current.h"
+#include "period_data.h"
 
 static const shell_command_t shell_commands[] = {
         {   "daq", "daq ops", daq_command},
@@ -32,6 +33,8 @@ int main(void)
 	data_transfer_init();
 	frame_parser_data_init();
 	over_current_service_init();
+
+	period_data_serv_init();
 	send_heart_beat_thread_init();
 
 	char line_buf[SHELL_DEFAULT_BUFSIZE];

@@ -13,7 +13,7 @@ uint16_t frame_heart_beat_encode(uint8_t *data, uint8_t errcode, uint32_t timest
 uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, uint16_t version_len, double longitude, double latitude, double altitude);
 
 /*周期数据编码*/
-uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, float ch1_current, float ch2_current, uint32_t timestamp);
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint32_t ch1_current, uint32_t ch2_current, uint32_t timestamp);
 uint16_t high_current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint32_t ch1_current, uint32_t ch2_current, uint32_t timestamp);
 
 /*突变数据编码*/

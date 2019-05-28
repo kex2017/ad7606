@@ -170,7 +170,7 @@ uint16_t frame_get_calibration_info_encode(uint8_t *data, uint8_t errorcode, cal
 	return index;
 }
 
-uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, float ch1_current, float ch2_current, uint32_t timestamp)
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint32_t ch1_current, uint32_t ch2_current, uint32_t timestamp)
 {
 	uint16_t index = 0;
 	index += frame_header_encode(data + index, cfg_get_device_id(), POWER_CURRENT_RSP_DATA_LEN);

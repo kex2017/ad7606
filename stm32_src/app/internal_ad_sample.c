@@ -47,6 +47,22 @@ int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t cha
    return 0;
 }
 
+void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b)
+{
+    pf_data.pf_threshold_chanagerate[channel].pf_cal_k_b = pf_cal_k_b;
+}
+uint16_t pf_get_threshold(uint8_t channel) 
+{
+    return pf_data.pf_threshold_chanagerate[channel].pf_threshold;
+}
+uint16_t pf_get_changerate(uint8_t channel)
+{
+    return pf_data.pf_threshold_chanagerate[channel].pf_chanagerate;
+}
+pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel)
+{
+    return pf_data.pf_threshold_chanagerate[channel].pf_cal_k_b;
+}
 void set_default_pf_threshold_rate(void)
 {
     uint16_t default_threshold = 2047;
@@ -58,6 +74,7 @@ void set_default_pf_threshold_rate(void)
                  default_changerate);
     }
 }
+
 
 void calc_rms(RAW_DATA *raw_data, float *rms_data)
 {

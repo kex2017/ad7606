@@ -23,10 +23,15 @@ typedef enum
 #define TEMP_ADC2_CHAN_CNT 2
 #define TEMP_BAT_ADC3_CHAN_CNT 2
 
+typedef struct pf_over_current_cal_k_b{
+    float k;
+    float b;
+}pf_cal_k_b_t;
 typedef struct _threshold_chanagerate
 {
     uint16_t pf_threshold;
     uint16_t pf_chanagerate;
+    pf_cal_k_b_t pf_cal_k_b;
 } PF_THRESHOLD_CHANAGERATE;
 
 typedef struct _pf_data_t
@@ -67,6 +72,11 @@ kernel_pid_t internal_ad_sample_serv_init(void);
 uint16_t get_line_temp(line_temperature_t line);
 void do_receive_pid_hook(kernel_pid_t pid);
 void set_periodic_task_thread_init(void);
+void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b);
+uint16_t pf_get_threshold(uint8_t channel);
+uint16_t pf_get_changerate(uint8_t channel);
+pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel);
 uint16_t get_bat_vol(void);
 int pf_over_current_set_threshold(uint8_t channel, uint16_t threshold,uint16_t changerate);
+int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate);
 #endif /* SRC_VC_TEMP_BAT_VOL_SAMPLE_H_ */

@@ -10,8 +10,10 @@
 #include "over_current.h"
 #include "period_data.h"
 #include "internal_ad_sample.h"
+#include "sc_device_cfg_test.h"
 
 static const shell_command_t shell_commands[] = {
+		{ "setenv", "set device cfg", test_set_device_cfg},
         {   "daq", "daq ops", daq_command},
 		{ "printenv", "print env", printenv_command },
     { NULL, NULL, NULL }

@@ -84,13 +84,19 @@ void set_chennel_info_by_type(channel_info_t * channel_info)
 	if (channel_info->type == 0) {
 		cfg_set_high_device_threshold(channel_info->channel,
 				channel_info->threshold);
+		set_over_current_threshold(channel_info->channel,
+				channel_info->threshold);
 		cfg_set_high_device_changerate(channel_info->channel,
+				channel_info->change_rate);
+		set_over_current_changerate(channel_info->channel,
 				channel_info->change_rate);
 	} else {
 		cfg_set_device_threshold(channel_info->channel,
 				channel_info->threshold);
 		cfg_set_device_changerate(channel_info->channel,
 				channel_info->change_rate);
+		pf_set_threshold_changerate(channel_info->channel,
+			channel_info->threshold, channel_info->change_rate);
 	}
 }
 
@@ -130,22 +136,29 @@ void set_calibration_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	float k ,b;
+	float k, b;
+	cal_k_b_t cal_k_b[2];
+	pf_cal_k_b_t pf_k_b[2];
 
-	for(int i = 0; i< 2; i++)
-	{
-		k = frame_req->frame_req.calibration_info.cal_data[i*2];
-		b = frame_req->frame_req.calibration_info.cal_data[i*2+1];
+	for (int i = 0; i < 2; i++) {
+		pf_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i * 2];
+		pf_k_b[i].b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 1];
+		pf_set_over_current_cal_k_b(i, pf_k_b[i]);
+		k = frame_req->frame_req.calibration_info.cal_data[i * 2];
+		b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 1];
 		cfg_set_device_k_b(i, k, b);
 	}
-	for(int i = 0; i< 2; i++)
-	{
-		k = frame_req->frame_req.calibration_info.cal_data[i*2+4];
-		b = frame_req->frame_req.calibration_info.cal_data[i*2+5];
+	for (int i = 0; i < 2; i++) {
+		cal_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i * 2 + 4];
+		cal_k_b[i].b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 5];
+		set_over_current_cal_k_b(i, cal_k_b[i]);
+		k = frame_req->frame_req.calibration_info.cal_data[i * 2 + 4];
+		b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 5];
 		cfg_set_high_device_k_b(i, k, b);
 	}
 
-	length = frame_set_calibration_info_encode(data, DEVICEOK, rtt_get_counter());
+	length = frame_set_calibration_info_encode(data, DEVICEOK,
+			rtt_get_counter());
 
 	msg_send_pack(data, length);
 }

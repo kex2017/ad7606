@@ -27,6 +27,7 @@ typedef struct pf_over_current_cal_k_b{
     float k;
     float b;
 }pf_cal_k_b_t;
+
 typedef struct _threshold_chanagerate
 {
     uint16_t pf_threshold;
@@ -77,6 +78,5 @@ uint16_t pf_get_threshold(uint8_t channel);
 uint16_t pf_get_changerate(uint8_t channel);
 pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel);
 uint16_t get_bat_vol(void);
-int pf_over_current_set_threshold(uint8_t channel, uint16_t threshold,uint16_t changerate);
 int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate);
 #endif /* SRC_VC_TEMP_BAT_VOL_SAMPLE_H_ */

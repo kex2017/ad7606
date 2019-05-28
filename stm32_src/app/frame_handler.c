@@ -4,6 +4,7 @@
 #include "log.h"
 #include "frame_encode.h"
 #include "frame_common.h"
+#include "internal_ad_sample.h"
 #include "data_transfer.h"
 #include "over_current.h"
 #include "periph/rtt.h"
@@ -73,7 +74,10 @@ void get_channel_info_handler(void)
 		channel_info[i].threshold = over_current_info[i]->threshold;
 		channel_info[i].change_rate = over_current_info[i]->change_rate;
 	}
-//FIXME: 工频缺失
+	for(int i = 0; i< 2; i++){
+		channel_info[i+2].threshold = pf_get_threshold(i);
+		channel_info[i+2].change_rate = pf_get_changerate(i);
+	}
 	length = frame_channel_info_encode(data, DEVICEOK, channel_info);
 
 	msg_send_pack(data, length);
@@ -82,15 +86,15 @@ void get_channel_info_handler(void)
 
 void set_chennel_info_by_type(channel_info_t * channel_info)
 {
-		if(channel_info->type == 0)
-		{
-			set_over_current_threshold(channel_info->channel, channel_info->threshold);
-			set_over_current_changerate(channel_info->channel, channel_info->change_rate);
-		}else{
-			//FIXME: 工频数据缺失
-//			set_power_current_info(channel_info->channel, channel_info->threshold, channel_info->change_rate);
-		}
-
+	if (channel_info->type == 0) {
+		set_over_current_threshold(channel_info->channel,
+				channel_info->threshold);
+		set_over_current_changerate(channel_info->channel,
+				channel_info->change_rate);
+	} else {
+		pf_set_threshold_changerate(channel_info->channel,
+				channel_info->threshold, channel_info->change_rate);
+	}
 }
 
 void set_channel_info_handler(frame_req_t *frame_req)
@@ -130,7 +134,15 @@ void set_calibration_info_handler(frame_req_t *frame_req)
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
 	cal_k_b_t cal_k_b[2];
+	pf_cal_k_b_t pf_k_b[2];
 
+
+	for(int i = 0; i< 2; i++)
+	{
+		pf_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i*2];
+		pf_k_b[i].b = frame_req->frame_req.calibration_info.cal_data[i*2+1];
+		pf_set_over_current_cal_k_b(i, pf_k_b[i]);
+	}
 	for(int i = 0; i< 2; i++)
 	{
 		cal_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i*2+4];
@@ -148,13 +160,19 @@ void get_calibration_info_handler(void)
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
 	cal_k_b_t over_current[2];
+	pf_cal_k_b_t pf_current[2];
 	calibration_info_t calibration_info;
+
+	for(int i = 0; i< 2; i++){
+		pf_current[i] = get_pf_over_current_cal_k_b(i);
+		calibration_info.cal_data[i*2] = pf_current[i].k;
+		calibration_info.cal_data[i*2+1] = pf_current[i].b;
+	}
 	for (int i = 0; i < 2; i++) {
 		over_current[i] = get_over_current_cal_k_b(i);
-		calibration_info.cal_data[i*2] = over_current[i].k;
-		calibration_info.cal_data[i*2+1] = over_current[i].b;
+		calibration_info.cal_data[i*2+4] = over_current[i].k;
+		calibration_info.cal_data[i*2+5] = over_current[i].b;
 	}
-	//FIXME: 工频数据缺失
 
 	length = frame_get_calibration_info_encode(data, DEVICEOK,&calibration_info);
 

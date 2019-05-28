@@ -300,8 +300,4 @@ uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode, uint3
     return index;
 }
 
-//uint16_t channel_info_encode()
-//{
-//
-//}
 

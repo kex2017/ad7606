@@ -8,6 +8,7 @@
 #include "over_current.h"
 #include "periph/rtt.h"
 #include "ec20_at.h"
+#include "env_cfg.h"
 #include "periph/pm.h"
 #include "type_alias.h"
 #include "x_delay.h"
@@ -110,9 +111,18 @@ void get_dev_info_handler(void)
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
 
-
+	length = dev_info_encode(data, DEVICEOK,
+			(uint8_t *) cfg_get_device_version(),
+			(uint16_t) strlen(cfg_get_device_version()),
+			cfg_get_device_longitude(), cfg_get_device_latitude(),
+			cfg_get_device_height());
 
 	msg_send_pack(data, length);
+}
+
+void do_send_dev_info_msg(void)
+{
+	get_dev_info_handler();
 }
 
 void set_calibration_info_handler(frame_req_t *frame_req)

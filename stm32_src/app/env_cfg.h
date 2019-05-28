@@ -34,7 +34,6 @@ double cfg_get_device_height(void);
 void load_device_cfg(void);
 void update_device_cfg(void);
 void display_device_cfg(void);
-
-
+int printenv_command(int argc, char **argv);
 
 #endif /* PARTS_FAULT_PARTITION_ENV_CFG_H_ */

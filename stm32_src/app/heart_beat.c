@@ -4,6 +4,7 @@
 #include "thread.h"
 #include "periph/rtt.h"
 #include "frame_common.h"
+#include "frame_handler.h"
 #include "board.h"
 #include "x_delay.h"
 #include "log.h"
@@ -36,8 +37,14 @@ void time_to_send_heart_msg(void)
 void *send_heart_beat_handler(void* arg)
 {
 	(void) arg;
+	static int times = 0;
 	while (1) {
 		delay_s(60);
+		if(times == 10)
+		{
+			do_send_dev_info_msg();
+		}
+		times ++;
 		LOG_INFO("Keep alive");
 		time_to_send_heart_msg();
 	}

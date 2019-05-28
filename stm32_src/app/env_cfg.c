@@ -29,7 +29,6 @@ typedef struct _device_cfg {
     double latitude;
     double height;
 	uint32_t channel_threshold[MAX_CHANNEL];
-
 } device_cfg_t;
 
 typedef union {
@@ -125,7 +124,7 @@ void load_device_cfg(void)
 	device_cfg_t device_cfg = {
 			.flag = FLAG_OFF,
 			.device_id = 1001,
-			.version = "kl_fp_1.0.0",
+			.version = "kl_fl_1.0.0",
 			.longitude = 120.33,
             .latitude = 30.33,
             .height = 12.7,
@@ -141,7 +140,7 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
+	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
 	}
 }
@@ -157,20 +156,22 @@ void update_device_cfg(void)
 
 void display_device_cfg(void)
 {
-	static char buff[512];
-//    get_device_version_information(buff);
-
 	printf("\r\nFault Partition device configuration:\r\n");
 	printf("\tdevice_id: %d\r\n", g_device_cfg.device_cfg.device_id);
-	printf("\tversion: %s\r\n", buff);
+	printf("\tversion: %s\r\n", g_device_cfg.device_cfg.version);
 	printf("\tinterval: %lds\r\n", g_device_cfg.device_cfg.data_interval);
 	printf("\tthreshold0: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
 	printf("\tthreshold1: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
 	printf("\tthreshold2: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[2]);
 	printf("\tthreshold3: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[3]);
-	printf("\tthreshold4: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[4]);
-	printf("\tthreshold5: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[5]);
-
+	printf("\t******************************************************\r\n");
 }
 
+int printenv_command(int argc, char **argv)
+{
+	(void)argc;
+	(void)argv;
+	display_device_cfg();
+	return 0;
+}
 

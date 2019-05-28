@@ -54,7 +54,7 @@ void *period_data_serv(void *arg)
 }
 
 #define PERIOD_DATA_PRIORITY  9
-static char period_data_thread_stack[THREAD_STACKSIZE_MAIN * 2];
+static char period_data_thread_stack[THREAD_STACKSIZE_MAIN];
 kernel_pid_t period_data_serv_init(void)
 {
     kernel_pid_t _pid = thread_create(period_data_thread_stack, sizeof(period_data_thread_stack),

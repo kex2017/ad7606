@@ -9,6 +9,7 @@
 #include "gps_sync.h"
 #include "over_current.h"
 #include "period_data.h"
+#include "internal_ad_sample.h"
 
 static const shell_command_t shell_commands[] = {
         {   "daq", "daq ops", daq_command},
@@ -36,8 +37,11 @@ int main(void)
 
 	period_data_serv_init();
 	send_heart_beat_thread_init();
+    internal_ad_sample_serv_init();
 
-	char line_buf[SHELL_DEFAULT_BUFSIZE];
-	shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-	return 0;
+    // send_task_thread_init();
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+    return 0;
+
 }

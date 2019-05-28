@@ -10,6 +10,10 @@
 
 #include <stdint.h>
 
+typedef struct _calibration_data{
+	float k;
+	float b;
+}calibration_data_t;
 
 void cfg_set_device_id(uint16_t id);
 uint16_t cfg_get_device_id(void);
@@ -21,8 +25,9 @@ void cfg_set_device_data_interval(uint32_t data_interval);
 uint32_t cfg_get_device_data_interval(void);
 
 void cfg_set_device_channel_threshold(uint8_t channel, uint32_t threshold);
-uint32_t cfg_get_device_channel_threshold(uint8_t channel);
-
+uint16_t cfg_get_device_channel_threshold(uint8_t channel);
+uint16_t cfg_get_device_channel_changerate(uint8_t channel);
+calibration_data_t * cfg_get_calibration_k_b(uint8_t channel);
 
 void cfg_set_device_longitude(double longitude);
 double cfg_get_device_longitude(void);

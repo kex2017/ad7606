@@ -9,6 +9,7 @@
 #include "thread.h"
 #include "x_delay.h"
 #include "periph/gpio.h"
+#include "data_send.h"
 #include "daq.h"
 
 kernel_pid_t over_current_pid = KERNEL_PID_UNDEF;
@@ -142,13 +143,20 @@ void init_over_current_irq(void)
     enable_over_current_irq();
 }
 
+static kernel_pid_t data_send_pid;
+void over_current_hook(kernel_pid_t pid)
+{
+    data_send_pid = pid;
+}
+
 static void *over_current_event_service(void *arg)
 {
     (void)arg;
-    msg_t recv_msg;
+    msg_t recv_msg, msg;
     uint8_t channel = 0;
     uint32_t length = 0;
 
+    msg.type = HF_CURVE_TYPE;
     init_over_current_irq();
     set_default_threshold_rate();
 
@@ -168,6 +176,7 @@ static void *over_current_event_service(void *arg)
                 clear_over_current_sample_done_flag(channel);
             }
         }
+        msg_send(&msg, data_send_pid);
         enable_over_current_irq();
     }
     /* never reached */

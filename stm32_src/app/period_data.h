@@ -9,7 +9,8 @@
 #define APP_PERIOD_DATA_H_
 #include "kernel_types.h"
 
-
 kernel_pid_t period_data_serv_init(void);
+
+void period_data_hook(kernel_pid_t pid);
 
 #endif /* APP_PERIOD_DATA_H_ */

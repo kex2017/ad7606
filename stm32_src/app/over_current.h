@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
-#define MAX_FPGA_DATA_LEN (4096) //4k*2
+#define MAX_FPGA_DATA_LEN (2048) //4k*2  4096
 
 #define OVER_CURRENT_PRIO              (6)
 
@@ -46,6 +46,8 @@ void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b);
 over_current_data_t *get_over_current_data(uint8_t channel);
 int get_over_current_max(uint8_t channel);
 int get_over_current_avr(uint8_t channel);
+
+void over_current_hook(kernel_pid_t pid);
 
 #ifdef __cplusplus
 }

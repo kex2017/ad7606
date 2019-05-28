@@ -11,6 +11,7 @@
 #include "period_data.h"
 #include "internal_ad_sample.h"
 #include "sc_device_cfg_test.h"
+#include "data_send.h"
 
 static const shell_command_t shell_commands[] = {
 		{ "setenv", "set device cfg", test_set_device_cfg},
@@ -35,6 +36,8 @@ int main(void)
 	gps_service_init();
 	data_transfer_init();
 	frame_parser_data_init();
+
+	data_send_serv_init();
 	over_current_service_init();
 
 	period_data_serv_init();

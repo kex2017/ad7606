@@ -15,6 +15,7 @@ extern "C" {
 #define OVER_CURRENT_PRIO              (6)
 
 typedef struct _over_current_data{
+    uint8_t happen_flag;
     uint32_t curve_len;
     uint16_t curve_data[MAX_FPGA_DATA_LEN];
     uint32_t ns_cnt;

@@ -162,6 +162,7 @@ static void *over_current_event_service(void *arg)
                 }
                 set_over_current_ns_cnt(channel);
                 g_over_current_data[channel].curve_len = length;
+                g_over_current_data[channel].happen_flag = 1;
                 read_over_current_sample_data(channel, (uint8_t*)(g_over_current_data[channel].curve_data), 0, length);
                 LOG_INFO("over current of channel:%d curve data length:%d ", channel, length);
                 clear_over_current_sample_done_flag(channel);

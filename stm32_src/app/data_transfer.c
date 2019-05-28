@@ -13,6 +13,7 @@
 
 static mutex_t cache_mtx;
 static char _rx_buf_mem[EC20_RX_BUFFSIZE];
+static frame_paser_dev_t fp_dev;
 
 static ec20_dev_t dev;
 
@@ -119,15 +120,12 @@ void *data_transfer_service(void *arg)
             }
         }
         if (LINK_UP == ec20_get_link_status(&dev)) {
+        	if( !is_frame_parser_busy(&fp_dev)){
             recv_pkt.data_len = ec20_at_recv(&dev, recv_pkt.data);
-            if (recv_pkt.data_len) {
-                //接收解析数据
-                printf("receive data:\r\n");
-                for(uint32_t i  = 0; i < recv_pkt.data_len; i++){
-                    printf("%d ", recv_pkt.data[i]);
-                }
-                puts("");
-            }
+            if (recv_pkt.data_len ) {
+            	add_frame_data_stream(&fp_dev, recv_pkt.data, recv_pkt.data_len);
+            	}
+        	}
             for(uint8_t i = 0; i < CACHE_NUM; i++){
                 if(cache_buf[i].use_flag){
                     send_pkt = cache_buf[i].cache;
@@ -165,7 +163,7 @@ kernel_pid_t data_transfer_init(void)
 #define HEAD_LIST_LEN (1)
 char rx_buff[FRAME_PARSER_DATA_LEN] = {0};
 
-static frame_paser_dev_t fp_dev;
+
 uint8_t parser_buff[FRAME_PARSER_DATA_LEN] = {0};
 uint8_t head = 0xdb;
 
@@ -183,9 +181,9 @@ void *frame_parser_data(void *arg)
 	(void)arg;
 	frame_req_t req_data = { 0 };
 	int rev_data_len= 0;
-	if(0 > frame_paser_init(&fp_dev, rx_buff, FRAME_PARSER_DATA_LEN, &head, HEAD_LIST_LEN, checksum, HEAD_LIST_LEN, 0))
+	if(0 > frame_paser_init(&fp_dev, rx_buff, FRAME_PARSER_DATA_LEN, &head, HEAD_LIST_LEN, checksum, HEAD_LIST_LEN, 4))
 	{
-		LOG_INFO("Frame parser init error");
+		LOG_ERROR("Frame parser init error");
 	}
 
 	while(1)

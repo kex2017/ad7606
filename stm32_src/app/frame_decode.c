@@ -3,12 +3,19 @@
 
 uint16_t frame_uint16_decode(uint8_t *data)
 {
-    return data[1] << 8 | data[0];
+    return data[0] << 8 | data[1];
 }
 
 uint32_t frame_uint32_decode(uint8_t* data)
 {
-    return (data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]);
+   uint32_t i = 0;
+   uint32_t data_temp = 0;
+
+   for (i = 0; i < 4; i++) {
+      data_temp = (data_temp << 8) | *(data + i);
+   }
+
+   return data_temp;
 }
 
 uint16_t frame_cs_decode(uint8_t* data, uint8_t* cs)

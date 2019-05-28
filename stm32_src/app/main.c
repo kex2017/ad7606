@@ -21,8 +21,8 @@ void ext_pm_init(void)
 
 int main(void)
 {
-//	ext_pm_init();
-//	daq_init();
+	ext_pm_init();
+	daq_init();
 
 	gps_service_init();
 	data_transfer_init();

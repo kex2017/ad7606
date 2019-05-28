@@ -119,6 +119,111 @@ uint16_t frame_get_running_state_encode(uint8_t *data, uint8_t errorcode, uint32
 	index += frame_uint32_encode(data+index, timestamp);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
-	return 0;
+	return index;
+}
+
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, float ch1_current, float ch2_current, uint32_t timestamp)
+{
+	uint16_t index = 0;
+	index += frame_header_encode(data + index, cfg_get_device_id(), POWER_CURRENT_RSP_DATA_LEN);
+	index += frame_uint8_encode(data + index, POWER_CURRENT_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint32_encode(data + index, timestamp);
+	index += frame_float_encode(data + index, ch1_current);
+	index += frame_float_encode(data + index, ch2_current);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
+
+uint16_t high_current_cycle_data_encode(uint8_t *data, uint8_t errorcode, float ch1_current, float ch2_current, uint32_t timestamp)
+{
+	uint16_t index = 0;
+	index += frame_header_encode(data + index, cfg_get_device_id(), POWER_CURRENT_RSP_DATA_LEN);
+	index += frame_uint8_encode(data + index, HIGH_POWER_CURRENT_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint32_encode(data + index, timestamp);
+	index += frame_float_encode(data + index, ch1_current);
+	index += frame_float_encode(data + index, ch2_current);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
+
+uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data + index, cfg_get_device_id(), CURRENT_WAVE_FORM_RSP_DATA_LEN + len);
+	index += frame_uint8_encode(data + index, CURRENT_WAVE_FORM_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint32_encode(data + index, timestamp);
+	index += frame_uint8_encode(data + index, channel);
+	index += frame_uint16_encode(data + index, pkg_sum);
+	index += frame_uint16_encode(data + index, pkg_index);
+	for(int i = 0; i<len; i++ )
+	{
+		index += frame_uint8_encode(data + index, cur_data[i]);
+	}
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return index;
+}
+
+uint16_t high_current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data + index, cfg_get_device_id(), HIGH_CURRENT_WAVE_FORM_RSP_DATA_LEN + len);
+	index += frame_uint8_encode(data + index, HIGH_CURRENT_WAVE_FORM_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint32_encode(data + index, timestamp);
+	index += frame_uint8_encode(data + index, channel);
+	index += frame_uint16_encode(data + index, pkg_sum);
+	index += frame_uint16_encode(data + index, pkg_index);
+	for(int i = 0; i<len; i++ )
+	{
+		index += frame_uint8_encode(data + index, cur_data[i]);
+	}
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return index;
+}
+
+uint16_t dev_running_state_encode(uint8_t * data, uint8_t errorcode, float temp, float humidity, float voltage, uint8_t work, uint32_t timestamp)
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data + index, cfg_get_device_id(), GET_RUNNING_STATE_RSP_DATA_LEN);
+	index += frame_uint8_encode(data + index, GET_RUNNING_STATE_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_float_encode(data + index, temp);
+	index += frame_float_encode(data + index, humidity);
+	index += frame_float_encode(data + index, voltage);
+	index += frame_uint8_encode(data + index, work);
+	index += frame_uint32_encode(data + index, timestamp);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return index;
+}
+
+
+uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, uint16_t version_len, double longitude, double latitude, double altitude)
+{
+	uint16_t index= 0;
+
+	index += frame_header_encode(data + index, cfg_get_device_id(), GET_DEV_INFO_RSP_DATA_LEN + version_len);
+	index += frame_uint8_encode(data + index, GET_DEV_INFO_RSP);
+	index += frame_uint8_encode(data + index, errorcode);
+	for(int i = 0; i<version_len; i++ )
+	{
+		index += frame_uint8_encode(data + index, version[i]);
+	}
+	index += frame_double_encode(data + index, longitude);
+	index += frame_double_encode(data + index, latitude);
+	index += frame_double_encode(data + index, altitude);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+	return index;
 }
 

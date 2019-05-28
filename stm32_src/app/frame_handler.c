@@ -63,6 +63,47 @@ void get_running_state_handler(void)
 	(void) length;
 }
 
+void get_channel_info_handler(void)
+{
+//	uint16_t length = 0;
+//	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
+
+
+
+}
+
+
+void set_chennel_info_by_type(channel_info_t * channel_info)
+{
+		if(channel_info->type == 0)
+		{
+//			set_high_current_info(channel_info->channel, channel_info->threshold, channel_info->change_rate);
+		}else{
+//			set_power_current_info(channel_info->channel, channel_info->threshold, channel_info->change_rate);
+		}
+		(void)channel_info;
+}
+
+void set_channel_info_handler(frame_req_t *frame_req)
+{
+	//	uint16_t length = 0;
+	//	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
+
+	set_chennel_info_by_type(&frame_req->frame_req.channel_info);
+
+}
+
+
+void get_dev_info_handler(void)
+{
+	//	uint16_t length = 0;
+	//	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
+
+
+
+}
+
+
 void frame_handler(frame_req_t *frame_req)
 {
 	switch (frame_req->func_code) {
@@ -74,10 +115,16 @@ void frame_handler(frame_req_t *frame_req)
 		get_running_state_handler();
 		break;
 	case GET_CHANNEL_INFO_REQ:
+		LOG_INFO("Receive get channel info command");
+		get_channel_info_handler();
 		break;
 	case SET_CHANNEL_INFO_REQ:
+		LOG_INFO("Receive set channel info command");
+		set_channel_info_handler(frame_req);
 		break;
 	case GET_DEV_INFO_REQ:
+		LOG_INFO("Receive get dev info command");
+		get_dev_info_handler();
 		break;
 	default:
 		break;

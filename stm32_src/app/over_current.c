@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
-
+#include "env_cfg.h"
 #include "log.h"
 #include "board.h"
 #include "periph/rtt.h"
@@ -55,12 +55,14 @@ void set_over_current_threshold(uint8_t channel, uint16_t threshold)
 {
     daq_spi_set_threshold(channel, threshold);
     g_over_current_info[channel].threshold = threshold;
+    cfg_set_device_threshold(channel+2, threshold);
 }
 
 void set_over_current_changerate(uint8_t channel, uint16_t changerate)
 {
     daq_spi_set_change_rate(channel, changerate);
     g_over_current_info[channel].change_rate = changerate;
+    cfg_set_device_changerate(channel+2, changerate);
 }
 
 void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b)

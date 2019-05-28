@@ -115,6 +115,17 @@ double cfg_get_device_height(void)
     return g_device_cfg.device_cfg.height;
 }
 
+void cfg_set_device_threshold(uint8_t channel, uint16_t threshold)
+{
+    g_device_cfg.device_cfg.channel_threshold[channel] = threshold;
+    update_device_cfg();
+}
+
+void cfg_set_device_changerate(uint8_t channel, uint16_t changerate)
+{
+    g_device_cfg.device_cfg.change_rate[channel] = changerate;
+    update_device_cfg();
+}
 
 #define DEFAULT_THRESHOLD (10000U)
 #define DATA_CHANGE_RATE (200U);
@@ -145,7 +156,7 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
+	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
 //		update_device_cfg();
 	}

@@ -3,6 +3,10 @@
 #include "timex.h"
 #include "xtimer.h"
 #include "x_delay.h"
+#include "frame_paser.h"
+#include "frame_handler.h"
+#include "frame_common.h"
+#include "frame_decode.h"
 #include "log.h"
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -155,3 +159,58 @@ kernel_pid_t data_transfer_init(void)
     return data_transfer_pid;
 }
 /* Data transfer thread end */
+
+/* Frame parser data thread start */
+#define FRAME_PARSER_DATA_LEN (1024)
+#define HEAD_LIST_LEN (1)
+char rx_buff[FRAME_PARSER_DATA_LEN] = {0};
+
+static frame_paser_dev_t fp_dev;
+uint8_t parser_buff[FRAME_PARSER_DATA_LEN] = {0};
+uint8_t head = 0xdb;
+
+int checksum(uint8_t* data,uint16_t data_len,uint8_t *crc_buf,uint16_t crc_len)
+{
+	(void )crc_len;
+
+	crc_buf[0] = byte_sum_checksum(data, data_len);
+
+    return sizeof(uint8_t);
+}
+
+void *frame_parser_data(void *arg)
+{
+	(void)arg;
+	frame_req_t req_data = { 0 };
+	int rev_data_len= 0;
+	if(0 > frame_paser_init(&fp_dev, rx_buff, FRAME_PARSER_DATA_LEN, &head, HEAD_LIST_LEN, checksum, HEAD_LIST_LEN, 0))
+	{
+		LOG_INFO("Frame parser init error");
+	}
+
+	while(1)
+	{
+		delay_ms(100);
+		if((rev_data_len = do_frame_parser(&fp_dev, parser_buff, FRAME_PARSER_DATA_LEN)) > 0 )
+		{
+			frame_decode(parser_buff, &req_data);
+			frame_handler(&req_data);
+			memset(parser_buff, 0, rev_data_len);
+		}
+	}
+	return NULL;
+}
+
+#define FRAME_PARSER_PRIO (5)
+kernel_pid_t frame_parser_data_pid = KERNEL_PID_UNDEF;
+static char frame_parser_data_stack[DATA_TRANSFER_STACKSIZE*2];
+kernel_pid_t frame_parser_data_init(void)
+{
+    if (frame_parser_data_pid == KERNEL_PID_UNDEF) {
+    	frame_parser_data_pid = thread_create(frame_parser_data_stack,
+                sizeof(frame_parser_data_stack),
+				FRAME_PARSER_PRIO, THREAD_CREATE_STACKTEST,
+                frame_parser_data, NULL, "frame parser service");
+    }
+    return frame_parser_data_pid;
+}

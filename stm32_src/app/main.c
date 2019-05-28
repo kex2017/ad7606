@@ -21,14 +21,15 @@ void ext_pm_init(void)
 
 int main(void)
 {
-    ext_pm_init();
-    daq_init();
+//	ext_pm_init();
+//	daq_init();
 
-    gps_service_init();
-    data_transfer_init();
-    over_current_service_init();
+	gps_service_init();
+	data_transfer_init();
+	frame_parser_data_init();
+	over_current_service_init();
 
-    char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-    return 0;
+	char line_buf[SHELL_DEFAULT_BUFSIZE];
+	shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+	return 0;
 }

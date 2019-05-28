@@ -58,6 +58,16 @@ uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_
 	return sizeof(uint16_t)+sizeof(uint32_t);
 }
 
+uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+	for(int i = 0; i< 8; i++)
+	{
+		master_frame_req->frame_req.calibration_info.cal_data[i] = frame_uint32_decode(frame_data+i*4);
+	}
+	return sizeof(uint32_t)*8;
+}
+
+
 uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
     uint32_t index = 0;
@@ -80,6 +90,12 @@ uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_re
     case GET_DEV_INFO_REQ:
     	ret = frame_on_need_decode();
 	break;
+    case SET_CALIBRATION_INFO_REQ:
+    	ret = frame_calibration_info_decode(frame_data+index, master_frame_req);
+    	break;
+    case GET_CALIBRATION_INFO_REQ:
+    	ret = frame_on_need_decode();
+    	break;
     default:
     	LOG_ERROR("Receive error command type %02x",master_frame_req->func_code );
     	break;

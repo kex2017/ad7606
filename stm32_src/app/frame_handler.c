@@ -96,10 +96,26 @@ void set_channel_info_handler(frame_req_t *frame_req)
 
 void get_dev_info_handler(void)
 {
-	//	uint16_t length = 0;
-	//	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
+//		uint16_t length = 0;
+//		uint8_t data[MAX_RSP_FRAME_LEN] = {0};
 
 
+}
+
+void set_calibration_info_handler(frame_req_t *frame_req)
+{
+	(void) frame_req;
+	uint16_t length = 0;
+	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
+
+	length = frame_set_calibration_info_encode(data, DEVICEOK, rtt_get_counter());
+	(void) length;
+}
+
+void get_calibration_info_handler(void)
+{
+//	uint16_t length = 0;
+//	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
 
 }
 
@@ -126,6 +142,14 @@ void frame_handler(frame_req_t *frame_req)
 		LOG_INFO("Receive get dev info command");
 		get_dev_info_handler();
 		break;
+    case SET_CALIBRATION_INFO_REQ:
+    	LOG_INFO("Receive set calibration info command");
+    	set_calibration_info_handler(frame_req);
+    	break;
+    case GET_CALIBRATION_INFO_REQ:
+    	LOG_INFO("Receive get calibration info command");
+    	get_calibration_info_handler();
+    	break;
 	default:
 		break;
 	}

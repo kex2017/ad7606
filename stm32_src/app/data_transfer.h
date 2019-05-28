@@ -38,4 +38,6 @@ void break_ec20_link(void);
 
 kernel_pid_t data_transfer_init(void);
 
+kernel_pid_t frame_parser_data_init(void);
+
 #endif /* SRC_DATA_TRANSFER_H_ */

@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "log.h"
-#include "frame_decode.h"
 
 #define FRAME_STARTER  0xDB
 #define MASTER_ADDR 0X1001
@@ -50,6 +49,14 @@
 #define GET_DEV_INFO_RSP 0xAA
 #define GET_DEV_INFO_RSP_DATA_LEN 0x1A
 
+#define SET_CALIBRATION_INFO_REQ 0xAB
+#define SET_CALIBRATION_INFO_RSP 0xAC
+#define SET_CALIBRATION_INFO_RSP_DATA_LEN  0x06
+
+#define GET_CALIBRATION_INFO_REQ 0xAD
+#define GET_CALIBRATION_INFO_RSP 0xAE
+#define GET_CALIBRATION_INFO_RSP_DATA_LEN  0x22
+
 #define POWER_CURRENT_RSP 0x52
 #define POWER_CURRENT_RSP_DATA_LEN 0x0E
 
@@ -82,12 +89,18 @@ typedef struct _channel_info{
 	uint16_t change_rate;
 }channel_info_t;
 
+typedef struct _calibration_info
+{
+	float cal_data[8];
+}calibration_info_t;
+
 typedef struct _frame_req {
 	frame_header_t header;
     uint8_t func_code;
    union {
     	time_info_t time_info;
     	channel_info_t channel_info;
+    	calibration_info_t calibration_info;
    } frame_req;
    uint8_t cs;
 }frame_req_t;

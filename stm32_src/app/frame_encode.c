@@ -122,6 +122,31 @@ uint16_t frame_get_running_state_encode(uint8_t *data, uint8_t errorcode, uint32
 	return index;
 }
 
+uint16_t frame_set_calibration_info_encode(uint8_t *data, uint8_t errorcode,uint32_t timestamp )
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data+index, cfg_get_device_id(), SET_CALIBRATION_INFO_RSP_DATA_LEN);
+	index += frame_uint8_encode(data+index, SET_CALIBRATION_INFO_RSP);
+	index += frame_uint8_encode(data+index, errorcode);
+	index += frame_uint32_encode(data+index, timestamp);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
+
+uint16_t frame_get_calibration_info_encode(uint8_t *data, uint8_t errorcode)
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data+index, cfg_get_device_id(), GET_CALIBRATION_INFO_RSP_DATA_LEN);
+	index += frame_uint8_encode(data+index, GET_CALIBRATION_INFO_RSP);
+	index += frame_uint8_encode(data+index, errorcode);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
+
 uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, float ch1_current, float ch2_current, uint32_t timestamp)
 {
 	uint16_t index = 0;
@@ -207,7 +232,6 @@ uint16_t dev_running_state_encode(uint8_t * data, uint8_t errorcode, float temp,
 	return index;
 }
 
-
 uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, uint16_t version_len, double longitude, double latitude, double altitude)
 {
 	uint16_t index= 0;
@@ -226,4 +250,9 @@ uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, ui
 
 	return index;
 }
+
+//uint16_t channel_info_encode()
+//{
+//
+//}
 

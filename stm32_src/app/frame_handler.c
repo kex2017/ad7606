@@ -68,7 +68,7 @@ void get_channel_info_handler(void)
 	over_current_info_t * over_current_info[2];
 	channel_info_t channel_info[4];
 	for (int i = 0; i < 2; i++) {
-		over_current_info[i] = get_channel_over_current_event_info(i);
+		over_current_info[i] = get_over_current_info(i);
 		channel_info[i].threshold = over_current_info[i]->threshold;
 		channel_info[i].change_rate = over_current_info[i]->change_rate;
 	}

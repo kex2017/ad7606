@@ -10,8 +10,14 @@ extern "C" {
 #endif
 
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
+#define MAX_FPGA_DATA_LEN (4096) //4k*2
 
 #define OVER_CURRENT_PRIO              (6)
+
+typedef struct _over_current_data{
+    uint32_t curve_len;
+    uint16_t curve_data[MAX_FPGA_DATA_LEN];
+}over_current_data_t;
 
 typedef struct _over_current_cal_k_b{
     float k;
@@ -27,31 +33,15 @@ typedef struct _over_current_info {
     cal_k_b_t cal_k_b;
 }over_current_info_t;
 
-void clear_channel_over_current_happened_flag(uint8_t channel);
-void set_over_current_event_info(void);
-
 kernel_pid_t over_current_service_init(void);
 
-
-int over_current_get_event_info(uint8_t channel, over_current_info_t *event);
+over_current_info_t *get_channel_over_current_event_info(uint8_t channel);
 
 void set_over_current_threshold(uint8_t channel, uint16_t threshold);
 void set_over_current_changerate(uint8_t channel, uint16_t changerate);
-/**
- * @brief   Get over current curve data length of given timestamp;
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
- */
-uint16_t over_current_get_curve_data_len(uint8_t channel,  uint32_t timestamp, uint32_t *length);
 
-/**
- * @brief   Get over current curve data of given timestamp, sn, cur_pkt_num;
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
- */
-int over_current_get_curve_data(uint8_t channel,  uint32_t timestamp, uint16_t sn, uint16_t cur_pkt_num, uint16_t* total_pkt_count, uint8_t *data, uint16_t pkt_size);
+cal_k_b_t get_over_current_cal_k_b(uint8_t channel);
+void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b);
 
 #ifdef __cplusplus
 }

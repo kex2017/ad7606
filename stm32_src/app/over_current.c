@@ -37,6 +37,7 @@ void over_current_event_pins_init(void)
 
 /********************over current event******************************/
 over_current_info_t g_over_current_info[MAX_OVER_CURRENT_CHANNEL_COUNT] = { {0} };
+static over_current_data_t over_current_event_buffer[MAX_OVER_CURRENT_CHANNEL_COUNT];
 
 void set_over_current_happened_timestamp(uint8_t channel, uint32_t timestamp)
 {
@@ -123,28 +124,12 @@ int get_over_current_avr(uint8_t channel)
     return avr;
 }
 
-//void update_channel_over_current_event_info(uint8_t channel)
-//{
-//    uint16_t sn = 1;
-//    int max_value = 0;
-//    int avr_value = 0;
-//
-//    set_over_current_happened_timestamp(channel, get_over_current_event_timestamp(channel));
-//    set_channel_over_current_event_sn_info(channel, sn);
-//    max_value = get_over_current_max(channel);
-//    set_over_current_max_value(channel, max_value);
-//    avr_value = get_over_current_avr(channel);
-//    set_over_current_avr_value(channel, avr_value);
-////    set_channel_over_current_k_coefficient(channel, max_value > 2048 ? 1 : -1);
-//    set_channel_over_current_happened_flag(channel);
-//}
-
 int check_over_current_sample_done(uint8_t channel)
 {
     return daq_spi_sample_done_check(channel);
 }
 
-uint32_t get_over_current_sample_length(uint8_t channel)
+uint32_t read_over_current_sample_length(uint8_t channel)
 {
     return daq_spi_get_data_len(channel);
 }
@@ -157,15 +142,6 @@ void read_over_current_sample_data(uint8_t channel, uint8_t *data, uint32_t addr
 void clear_over_current_sample_done_flag(uint8_t channel)
 {
     daq_spi_clear_data_done_flag(channel);
-}
-
-#define MAX_FPGA_DATA_LEN (4096) //4k
-static uint16_t over_current_event_buffer[MAX_FPGA_DATA_LEN];
-
-void init_over_current_irq(void)
-{
-    over_current_event_pins_init();
-    enable_over_current_irq();
 }
 
 void set_over_current_threshold(uint8_t channel, uint16_t threshold)
@@ -185,12 +161,18 @@ void set_default_threshold_rate(void)
     uint16_t default_threshold = 2047;
     uint16_t default_changerate = 4095;
 
-    for (int i = 0; i < MAX_OVER_CURRENT_CHANNEL_COUNT; i++) {
-        set_over_current_threshold(i, default_threshold);
-        set_over_current_changerate(i, default_changerate);
-        LOG_INFO("Set over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, default_threshold,
+    for (int channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
+        set_over_current_threshold(channel, default_threshold);
+        set_over_current_changerate(channel, default_changerate);
+        LOG_INFO("Set over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", channel, default_threshold,
                  default_changerate);
     }
+}
+
+void init_over_current_irq(void)
+{
+    over_current_event_pins_init();
+    enable_over_current_irq();
 }
 
 static void *over_current_event_service(void *arg)
@@ -208,14 +190,15 @@ static void *over_current_event_service(void *arg)
         msg_receive(&recv_msg);
         for (channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             if (0 < check_over_current_sample_done(channel)) {
-                if ((length = get_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
+                if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
                     LOG_WARN("Get over current curve data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", length);
                     continue;
                 }
-                read_over_current_sample_data(channel, (uint8_t*)over_current_event_buffer, 0, length);
+
+                over_current_event_buffer[channel].curve_len = length;
+                read_over_current_sample_data(channel, (uint8_t*)(over_current_event_buffer[channel].curve_data), 0, length);
                 LOG_INFO("over current of channel:%d curve data length:%d ", channel, length);
                 clear_over_current_sample_done_flag(channel);
-//                update_channel_over_current_event_info(channel);
             }
         }
         enable_over_current_irq();
@@ -230,7 +213,7 @@ kernel_pid_t over_current_service_init(void)
 	if (over_current_pid == KERNEL_PID_UNDEF) {
 		over_current_pid = thread_create(over_current_stack, sizeof(over_current_stack),
 				OVER_CURRENT_PRIO, THREAD_CREATE_STACKTEST,
-				over_current_event_service, NULL, "overcurrent");
+				over_current_event_service, NULL, "over current");
 	}
    return over_current_pid;
 }

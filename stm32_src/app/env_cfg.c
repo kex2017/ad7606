@@ -19,7 +19,6 @@ enum{
     FLAG_OFF = -1
 };
 
-
 typedef struct _device_cfg {
 	int32_t flag;
 	uint16_t device_id;
@@ -30,6 +29,7 @@ typedef struct _device_cfg {
     double height;
     uint16_t change_rate[MAX_CHANNEL];
 	uint16_t channel_threshold[MAX_CHANNEL];
+	calibration_data_t  calibration_info[MAX_CHANNEL];
 } device_cfg_t;
 
 typedef union {
@@ -73,17 +73,20 @@ uint32_t cfg_get_device_data_interval(void)
     return g_device_cfg.device_cfg.data_interval;
 }
 
-/***channel threshold******/
-void cfg_set_device_channel_threshold(uint8_t channel, uint32_t threshold)
-{
-	g_device_cfg.device_cfg.channel_threshold[channel] = threshold;
-}
-
-uint32_t cfg_get_device_channel_threshold(uint8_t channel)
+uint16_t cfg_get_device_channel_threshold(uint8_t channel)
 {
 	return g_device_cfg.device_cfg.channel_threshold[channel];
 }
 
+uint16_t cfg_get_device_channel_changerate(uint8_t channel)
+{
+	return g_device_cfg.device_cfg.change_rate[channel];
+}
+
+calibration_data_t * cfg_get_calibration_k_b(uint8_t channel)
+{
+	return &g_device_cfg.device_cfg.calibration_info[channel];
+}
 
 void cfg_set_device_longitude(double longitude)
 {
@@ -127,6 +130,13 @@ void cfg_set_device_changerate(uint8_t channel, uint16_t changerate)
     update_device_cfg();
 }
 
+void cfg_set_device_k_b(uint8_t channel, float k, float b)
+{
+	g_device_cfg.device_cfg.calibration_info[channel].k = k;
+	g_device_cfg.device_cfg.calibration_info[channel].b = b;
+    update_device_cfg();
+}
+
 #define DEFAULT_THRESHOLD (10000U)
 #define DATA_CHANGE_RATE (200U);
 void load_device_cfg(void)
@@ -151,12 +161,17 @@ void load_device_cfg(void)
 	for (i = 0; i < MAX_CHANNEL; i++) {
 		device_cfg.change_rate[i] = DATA_CHANGE_RATE;
 	}
+	for (i = 0; i < MAX_CHANNEL; i++) {
+		device_cfg.calibration_info[i].k = 1;
+		device_cfg.calibration_info[i].b = 0;
+	}
+
 	memset((void*)&g_device_cfg, 0x0, FLASH_PAGE_SIZE);
 
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
+	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
 //		update_device_cfg();
 	}
@@ -166,7 +181,7 @@ void update_device_cfg(void)
 {
 	uint32_t page = 0;
 
-	g_device_cfg.device_cfg.flag = FLAG_ON;
+	g_device_cfg.device_cfg.flag = FLAG_OFF;
 	page = get_device_cfg_flash_page_addr();
     flashpage_write(page, g_device_cfg.env_buf);
 }

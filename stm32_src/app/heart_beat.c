@@ -1,31 +1,36 @@
 #include "heart_beat.h"
 #include "frame_encode.h"
+#include "data_transfer.h"
 #include "thread.h"
 #include "periph/rtt.h"
 #include "frame_common.h"
 #include "board.h"
-#include "timex.h"
+#include "x_delay.h"
 #include "log.h"
-#include "xtimer.h"
+#include "type_alias.h"
 #include "periph/stm32f10x_std_periph.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-static void delay_s(int s)
+void do_send_heart_beat_packet(uint8_t *data, uint32_t data_len)
 {
-	xtimer_ticks32_t last_wakeup = xtimer_now();
-	xtimer_periodic_wakeup(&last_wakeup, US_PER_SEC * s);
+	if (get_ec20_link_flag() == LINK_UP) {
+		while (set_data_to_cache(data, data_len) == 0) {
+			delay_ms(500);
+		}
+	}
 }
 
-//void do_send_heart_beat_packet(uint8_t *data, uint32_t data_len)
-//{
-//	if (get_ec20_link_flag() == LINK_UP) {
-//		while (set_data_to_cache(data, data_len) == 0) {
-//			delay_ms(500);
-//		}
-//	}
-//}
+void time_to_send_heart_msg(void)
+{
+	uint16_t length = 0;
+	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
+
+	length = frame_heart_beat_encode(data, DEVICEOK, rtt_get_counter());
+
+	do_send_heart_beat_packet(data, length);
+}
 
 
 void *send_heart_beat_handler(void* arg)
@@ -33,7 +38,8 @@ void *send_heart_beat_handler(void* arg)
 	(void) arg;
 	while (1) {
 		delay_s(60);
-//		send_sensor_heart_beat();
+		LOG_INFO("Keep alive");
+		time_to_send_heart_msg();
 	}
 }
 

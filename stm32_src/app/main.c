@@ -28,6 +28,7 @@ int main(void)
 	data_transfer_init();
 	frame_parser_data_init();
 	over_current_service_init();
+	send_heart_beat_thread_init();
 
 	char line_buf[SHELL_DEFAULT_BUFSIZE];
 	shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);

@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
-#define MAX_FPGA_DATA_LEN (2048) //4k*2  4096
+#define MAX_FPGA_DATA_LEN (4096) //4k*2  4096
 
 #define OVER_CURRENT_PRIO              (6)
 

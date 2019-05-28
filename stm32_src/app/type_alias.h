@@ -2,10 +2,6 @@
 #define TYPE_ALIAS_H_
 
 #define MAX_CHANNEL 2
-#define MAX_PARTIAL_DISCHARGE_CURVE_DATA_LEN (102400) //100K
-
-//#define MASTER_ADDR 0X0001
-#define BASE_CHANNEL 0X0010
 
 #ifndef boolean
 typedef enum{

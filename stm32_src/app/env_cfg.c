@@ -28,7 +28,8 @@ typedef struct _device_cfg {
     double longitude;
     double latitude;
     double height;
-	uint32_t channel_threshold[MAX_CHANNEL];
+    uint16_t change_rate[MAX_CHANNEL];
+	uint16_t channel_threshold[MAX_CHANNEL];
 } device_cfg_t;
 
 typedef union {
@@ -115,7 +116,8 @@ double cfg_get_device_height(void)
 }
 
 
-#define DEFAULT_THRESHOLD (100000000U)
+#define DEFAULT_THRESHOLD (10000U)
+#define DATA_CHANGE_RATE (200U);
 void load_device_cfg(void)
 {
 	uint32_t page = 0;
@@ -135,6 +137,9 @@ void load_device_cfg(void)
 		device_cfg.channel_threshold[i] = DEFAULT_THRESHOLD;
 	}
 
+	for (i = 0; i < MAX_CHANNEL; i++) {
+		device_cfg.change_rate[i] = DATA_CHANGE_RATE;
+	}
 	memset((void*)&g_device_cfg, 0x0, FLASH_PAGE_SIZE);
 
 	page = get_device_cfg_flash_page_addr();
@@ -142,6 +147,7 @@ void load_device_cfg(void)
 
 	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
+//		update_device_cfg();
 	}
 }
 
@@ -156,15 +162,20 @@ void update_device_cfg(void)
 
 void display_device_cfg(void)
 {
-	printf("\r\nFault Partition device configuration:\r\n");
+	printf("\r\n******************************************************\r\n");
+	printf("Fault Partition device configuration:\r\n");
 	printf("\tdevice_id: %d\r\n", g_device_cfg.device_cfg.device_id);
 	printf("\tversion: %s\r\n", g_device_cfg.device_cfg.version);
 	printf("\tinterval: %lds\r\n", g_device_cfg.device_cfg.data_interval);
-	printf("\tthreshold0: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
-	printf("\tthreshold1: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
-	printf("\tthreshold2: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[2]);
-	printf("\tthreshold3: %ld\r\n", g_device_cfg.device_cfg.channel_threshold[3]);
-	printf("\t******************************************************\r\n");
+	printf("\tthreshold0: %d\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
+	printf("\tthreshold1: %d\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
+	printf("\tthreshold3: %d\r\n", g_device_cfg.device_cfg.channel_threshold[2]);
+	printf("\tthreshold4: %d\r\n", g_device_cfg.device_cfg.channel_threshold[3]);
+	printf("\tchange_rete0: %d\r\n", g_device_cfg.device_cfg.change_rate[0]);
+	printf("\tchange_rete1: %d\r\n", g_device_cfg.device_cfg.change_rate[1]);
+	printf("\tchange_rete3: %d\r\n", g_device_cfg.device_cfg.change_rate[2]);
+	printf("\tchange_rete4: %d\r\n", g_device_cfg.device_cfg.change_rate[3]);
+	printf("******************************************************\r\n");
 }
 
 int printenv_command(int argc, char **argv)

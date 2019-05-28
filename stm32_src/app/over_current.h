@@ -11,83 +11,32 @@ extern "C" {
 
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
 
-/**
- * @brief   Priority of the over current thread
- */
-#ifndef OVER_CURRENT_PRIO
 #define OVER_CURRENT_PRIO              (6)
-#endif
 
-/**
- * @brief   Stack size used for the over current thread
- */
-#ifndef OVER_CURRENT_STACKSIZE
-#define OVER_CURRENT_STACKSIZE          (THREAD_STACKSIZE_MAIN)
-#endif
+typedef struct _over_current_cal_k_b{
+    float k;
+    float b;
+}cal_k_b_t;
 
-
-
-typedef struct _over_current_event_info {
-    uint16_t happened_flag;
+typedef struct _over_current_info {
     uint16_t max_value;
     uint16_t avr_value;
-    uint16_t sn;
     uint32_t timestamp;
-    float k;
-}over_current_event_info_t;
+    uint16_t threshold;
+    uint16_t change_rate;
+    cal_k_b_t cal_k_b;
+}over_current_info_t;
 
 void clear_channel_over_current_happened_flag(uint8_t channel);
 void set_over_current_event_info(void);
 
-
-/**
- * @brief   The PID of the over current thread
- */
-extern kernel_pid_t over_current_pid;
-
-/**
- * @brief   Start the over current detected thread
- *
- * @return  PID of the over current thread
- * @return  negative value on error
- */
 kernel_pid_t over_current_service_init(void);
 
-/**
- * @brief   Notify that over current event happen.
- *          Usually called by hardware PIN interrupt.
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
 
- */
-int over_current_event_happen_notify(void);
+int over_current_get_event_info(uint8_t channel, over_current_info_t *event);
 
-/**
- * @brief   Get channels which has over current event happen.
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
- */
-int over_current_get_event_happened_channels(uint8_t *channles, uint8_t *count);
-
-
-/**
- * @brief   Get over current event details info of given channel.
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
- */
-int over_current_get_event_info(uint8_t channel, over_current_event_info_t *event);
-
-/**
- * @brief   Set  over current threshold of give channel
- *
- * @return  negative value on error;
- *          FPGA not ready etc...
- */
-int over_current_set_threshold(uint8_t channel, uint16_t threshold);
-int over_current_set_changerate(uint8_t channel, uint16_t changerate);
+void set_over_current_threshold(uint8_t channel, uint16_t threshold);
+void set_over_current_changerate(uint8_t channel, uint16_t changerate);
 /**
  * @brief   Get over current curve data length of given timestamp;
  *

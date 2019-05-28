@@ -31,6 +31,9 @@ double cfg_get_device_latitude(void);
 void cfg_set_device_height(double height);
 double cfg_get_device_height(void);
 
+void cfg_set_device_threshold(uint8_t channel, uint16_t threshold);
+void cfg_set_device_changerate(uint8_t channel, uint16_t changerate);
+
 void load_device_cfg(void);
 void update_device_cfg(void);
 void display_device_cfg(void);

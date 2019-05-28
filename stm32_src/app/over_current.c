@@ -171,7 +171,7 @@ static void *over_current_event_service(void *arg)
     return NULL;
 }
 
-static char over_current_stack[THREAD_STACKSIZE_MAIN * 3];
+static char over_current_stack[THREAD_STACKSIZE_MAIN * 2];
 kernel_pid_t over_current_service_init(void)
 {
 	if (over_current_pid == KERNEL_PID_UNDEF) {

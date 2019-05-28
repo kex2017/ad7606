@@ -29,5 +29,6 @@ void init_register_info(void);
 register_info_t * get_register_info(void);
 
 void watch_dog_service_init(void);
+void delay_s(int s);
 
 #endif

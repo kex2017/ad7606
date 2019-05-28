@@ -23,7 +23,16 @@ typedef enum
 #define TEMP_ADC2_CHAN_CNT 2
 #define TEMP_BAT_ADC3_CHAN_CNT 2
 
-#define PF_OVER_LIMIT 2048
+typedef struct _threshold_chanagerate
+{
+    uint16_t pf_threshold;
+    uint16_t pf_chanagerate;
+} PF_THRESHOLD_CHANAGERATE;
+
+typedef struct _pf_data_t
+{
+    PF_THRESHOLD_CHANAGERATE pf_threshold_chanagerate[CHANNEL_COUNT];
+} PF_DATA;
 
 typedef struct _raw_data_t
 {
@@ -50,16 +59,14 @@ typedef struct _periodic_data {
 
 typedef enum{
    MUTATION_DATA_TYPE = 1,
-   GENERAL_CALL_DATA_TYPE,
    PERIODIC_DATA_TYPE,
-   MOCK_IGNORE_DATA_TYPE,
 }MSG_TYPE;
 
-kernel_pid_t pf_sample_serv_init(void);
+kernel_pid_t internal_ad_sample_serv_init(void);
 
 uint16_t get_line_temp(line_temperature_t line);
 void do_receive_pid_hook(kernel_pid_t pid);
 void set_periodic_task_thread_init(void);
 uint16_t get_bat_vol(void);
-
+int pf_over_current_set_threshold(uint8_t channel, uint16_t threshold,uint16_t changerate);
 #endif /* SRC_VC_TEMP_BAT_VOL_SAMPLE_H_ */

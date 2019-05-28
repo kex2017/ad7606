@@ -156,7 +156,7 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
+	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
 //		update_device_cfg();
 	}
@@ -166,7 +166,7 @@ void update_device_cfg(void)
 {
 	uint32_t page = 0;
 
-	g_device_cfg.device_cfg.flag = FLAG_ON;
+	g_device_cfg.device_cfg.flag = FLAG_OFF;
 	page = get_device_cfg_flash_page_addr();
     flashpage_write(page, g_device_cfg.env_buf);
 }

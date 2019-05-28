@@ -67,16 +67,14 @@ void get_channel_info_handler(void)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	over_current_info_t * over_current_info[2];
 	channel_info_t channel_info[4];
-	for (int i = 0; i < 2; i++) {
-		over_current_info[i] = get_over_current_info(i);
-		channel_info[i].threshold = over_current_info[i]->threshold;
-		channel_info[i].change_rate = over_current_info[i]->change_rate;
-	}
 	for(int i = 0; i< 2; i++){
-		channel_info[i+2].threshold = pf_get_threshold(i);
-		channel_info[i+2].change_rate = pf_get_changerate(i);
+		channel_info[i].threshold = cfg_get_device_high_channel_threshold(i);
+		channel_info[i].change_rate = cfg_get_device_high_channel_changerate(i);
+	}
+	for (int i = 0; i < 2; i++) {
+		channel_info[i+2].threshold =   cfg_get_device_channel_threshold(i);
+		channel_info[i+2].change_rate = cfg_get_device_channel_changerate(i);
 	}
 	length = frame_channel_info_encode(data, DEVICEOK, channel_info);
 
@@ -159,19 +157,18 @@ void get_calibration_info_handler(void)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	cal_k_b_t over_current[2];
-	pf_cal_k_b_t pf_current[2];
 	calibration_info_t calibration_info;
+	calibration_data_t *calibration_data[4];
 
 	for(int i = 0; i< 2; i++){
-		pf_current[i] = get_pf_over_current_cal_k_b(i);
-		calibration_info.cal_data[i*2] = pf_current[i].k;
-		calibration_info.cal_data[i*2+1] = pf_current[i].b;
+		calibration_data[i] = cfg_get_calibration_k_b(i);
+		calibration_info.cal_data[i*2] = calibration_data[i]->k;
+		calibration_info.cal_data[i*2+1] = calibration_data[i]->b;
 	}
 	for (int i = 0; i < 2; i++) {
-		over_current[i] = get_over_current_cal_k_b(i);
-		calibration_info.cal_data[i*2+4] = over_current[i].k;
-		calibration_info.cal_data[i*2+5] = over_current[i].b;
+		calibration_data[i+2] = cfg_get_high_calibration_k_b(i);
+		calibration_info.cal_data[i*2+4] = calibration_data[i+2]->k;
+		calibration_info.cal_data[i*2+5] = calibration_data[i+2]->b;
 	}
 
 	length = frame_get_calibration_info_encode(data, DEVICEOK,&calibration_info);

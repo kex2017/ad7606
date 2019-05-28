@@ -28,8 +28,13 @@ typedef struct _device_cfg {
     double latitude;
     double height;
     uint16_t change_rate[MAX_CHANNEL];
-	uint16_t channel_threshold[MAX_CHANNEL];
+    uint16_t high_change_rate[MAX_CHANNEL];
+
+    uint16_t channel_threshold[MAX_CHANNEL];
+    uint16_t high_channel_threshold[MAX_CHANNEL];
+
 	calibration_data_t  calibration_info[MAX_CHANNEL];
+	calibration_data_t  high_calibration_info[MAX_CHANNEL];
 } device_cfg_t;
 
 typedef union {
@@ -78,14 +83,29 @@ uint16_t cfg_get_device_channel_threshold(uint8_t channel)
 	return g_device_cfg.device_cfg.channel_threshold[channel];
 }
 
+uint16_t cfg_get_device_high_channel_threshold(uint8_t channel)
+{
+	return g_device_cfg.device_cfg.high_channel_threshold[channel];
+}
+
 uint16_t cfg_get_device_channel_changerate(uint8_t channel)
 {
 	return g_device_cfg.device_cfg.change_rate[channel];
 }
 
+uint16_t cfg_get_device_high_channel_changerate(uint8_t channel)
+{
+	return g_device_cfg.device_cfg.high_change_rate[channel];
+}
+
 calibration_data_t * cfg_get_calibration_k_b(uint8_t channel)
 {
 	return &g_device_cfg.device_cfg.calibration_info[channel];
+}
+
+calibration_data_t * cfg_get_high_calibration_k_b(uint8_t channel)
+{
+	return &g_device_cfg.device_cfg.high_calibration_info[channel];
 }
 
 void cfg_set_device_longitude(double longitude)
@@ -137,6 +157,26 @@ void cfg_set_device_k_b(uint8_t channel, float k, float b)
     update_device_cfg();
 }
 
+
+void cfg_set_high_device_threshold(uint8_t channel, uint16_t threshold)
+{
+    g_device_cfg.device_cfg.high_channel_threshold[channel] = threshold;
+    update_device_cfg();
+}
+
+void cfg_set_high_device_changerate(uint8_t channel, uint16_t changerate)
+{
+    g_device_cfg.device_cfg.high_change_rate[channel] = changerate;
+    update_device_cfg();
+}
+
+void cfg_set_high_device_k_b(uint8_t channel, float k, float b)
+{
+	g_device_cfg.device_cfg. high_calibration_info[channel].k = k;
+	g_device_cfg.device_cfg. high_calibration_info[channel].b = b;
+    update_device_cfg();
+}
+
 #define DEFAULT_THRESHOLD (10000U)
 #define DATA_CHANGE_RATE (200U);
 void load_device_cfg(void)
@@ -156,15 +196,16 @@ void load_device_cfg(void)
 
 	for (i = 0; i < MAX_CHANNEL; i++) {
 		device_cfg.channel_threshold[i] = DEFAULT_THRESHOLD;
-	}
-
-	for (i = 0; i < MAX_CHANNEL; i++) {
 		device_cfg.change_rate[i] = DATA_CHANGE_RATE;
-	}
-	for (i = 0; i < MAX_CHANNEL; i++) {
 		device_cfg.calibration_info[i].k = 1;
 		device_cfg.calibration_info[i].b = 0;
+
+		device_cfg.high_channel_threshold[i] = DEFAULT_THRESHOLD;
+		device_cfg.high_change_rate[i] = DATA_CHANGE_RATE;
+		device_cfg.high_calibration_info[i].k = 1;
+		device_cfg.high_calibration_info[i].b = 0;
 	}
+
 
 	memset((void*)&g_device_cfg, 0x0, FLASH_PAGE_SIZE);
 
@@ -195,12 +236,12 @@ void display_device_cfg(void)
 	printf("\tinterval: %lds\r\n", g_device_cfg.device_cfg.data_interval);
 	printf("\tthreshold0: %d\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
 	printf("\tthreshold1: %d\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
-	printf("\tthreshold3: %d\r\n", g_device_cfg.device_cfg.channel_threshold[2]);
-	printf("\tthreshold4: %d\r\n", g_device_cfg.device_cfg.channel_threshold[3]);
+	printf("\thigh_threshold0: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[0]);
+	printf("\thigh_threshold1: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[1]);
 	printf("\tchange_rete0: %d\r\n", g_device_cfg.device_cfg.change_rate[0]);
 	printf("\tchange_rete1: %d\r\n", g_device_cfg.device_cfg.change_rate[1]);
-	printf("\tchange_rete3: %d\r\n", g_device_cfg.device_cfg.change_rate[2]);
-	printf("\tchange_rete4: %d\r\n", g_device_cfg.device_cfg.change_rate[3]);
+	printf("\thigh_change_rete0: %d\r\n", g_device_cfg.device_cfg.high_change_rate[0]);
+	printf("\thigh_change_rete1: %d\r\n", g_device_cfg.device_cfg.high_change_rate[1]);
 	printf("******************************************************\r\n");
 }
 

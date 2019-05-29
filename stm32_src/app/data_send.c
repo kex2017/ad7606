@@ -35,11 +35,11 @@ static void upload_period_data(void)
     //发送其他周期数据
 }
 
-#define PACKET_DATA_LEN 250
+#define PACKET_DATA_LEN 200
 void send_over_current_curve(void)
 {
     uint16_t len = 0;
-    uint8_t data[300] = {0};
+    uint8_t data[256] = {0};
     uint8_t pk_data[PACKET_DATA_LEN] = {0};
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;

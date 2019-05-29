@@ -127,11 +127,6 @@ void get_dev_info_handler(void)
 	msg_send_pack(data, length);
 }
 
-void do_send_dev_info_msg(void)
-{
-	get_dev_info_handler();
-}
-
 void set_calibration_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
@@ -186,6 +181,11 @@ void get_calibration_info_handler(void)
 	msg_send_pack(data, length);
 }
 
+void do_send_dev_info_msg(void)
+{
+    get_dev_info_handler();
+    get_calibration_info_handler();
+}
 
 void frame_handler(frame_req_t *frame_req)
 {

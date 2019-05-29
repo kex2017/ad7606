@@ -31,7 +31,7 @@ void daq_usage_help(void)
    );
 }
 
-static uint8_t g_data_buf[4096];
+static uint8_t g_data_buf[100];
 int daq_command(int argc, char **argv)
 {
     if (argc < 2) {

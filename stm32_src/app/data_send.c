@@ -117,7 +117,7 @@ void *data_send_serv(void *arg)
         case PF_CURVE_TYPE:
             md = (MUTATION_DATA*)(msg.content.ptr);
             send_mutation_data(md);
-            // send_mutation_msg_is_done();
+            send_mutation_msg_is_done();
             break;
         case HF_CURVE_TYPE:
             send_over_current_curve();

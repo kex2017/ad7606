@@ -28,6 +28,8 @@ static kernel_pid_t to_receive_pid;
 
 static msg_t rcv_queue[8];
 
+static int mutation_msg_is_done;
+
 static float rms_data[PF_CHANNEL_COUNT] = {0};
 
 static MUTATION_DATA mutation_data;
@@ -76,6 +78,16 @@ void set_default_pf_threshold_rate(void)
     }
 }
 
+void init_msg_send_is_done(void)
+{
+   mutation_msg_is_done = 1;
+   periodic_msg_is_done =1;
+}
+
+void send_mutation_msg_is_done(void)
+{
+   mutation_msg_is_done = 1;
+}
 
 void calc_rms(RAW_DATA *raw_data, float *rms_data)
 {
@@ -167,23 +179,10 @@ void clear_periodic_task(void)
    do_periodic_task = 0;
 }
 
-void clear_general_call_task(void)
-{
-   general_call_task = 0;
-}
-
 void init_task(void)
 {
    clear_periodic_task();
-   clear_general_call_task();
 }
-
-void init_msg_send_is_done(void)
-{
-   mutation_msg_is_done = 1;
-   periodic_msg_is_done =1;
-}
-
 void *internal_ad_sample_serv(void *arg)
 {
     (void)arg;
@@ -211,6 +210,9 @@ void *internal_ad_sample_serv(void *arg)
             if (!mutation_msg_is_done)
             {
                 printf("mutation data not send done\r\n");
+                mutation_data.rms_data[0] = rms_data[0];
+                mutation_data.rms_data[1] = rms_data[1];
+                memcpy((void *)(&(mutation_data.wd.data[CHANNEL_COUNT * SAMPLE_COUNT])), (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
                 continue;
             }
             mutation_data.rms_data[0] = rms_data[0];
@@ -224,6 +226,9 @@ void *internal_ad_sample_serv(void *arg)
             send_mutation_msg.type = MUTATION_DATA_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
             msg_send(&(send_mutation_msg), data_recv_pid);
+
+            periodic_task_i = 0;
+            do_periodic_task = 0;
         }
         else
         {

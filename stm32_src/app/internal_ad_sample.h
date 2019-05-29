@@ -67,6 +67,12 @@ typedef struct _periodic_data {
    float rms_data[PF_CHANNEL_COUNT];
 } PERIODIC_DATA;
 
+typedef struct _general_call_data {
+   uint16_t channel1[SAMPLE_COUNT];
+   uint16_t channel2[SAMPLE_COUNT];
+   float rms_data[PF_CHANNEL_COUNT];
+} GENERAL_CALL_DATA;
+
 
 kernel_pid_t internal_ad_sample_serv_init(void);
 

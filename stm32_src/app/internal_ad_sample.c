@@ -25,7 +25,6 @@ __IO uint16_t sample_buf[CHANNEL_COUNT * SAMPLE_COUNT];
 
 uint16_t pf_adc1_channel_list[PF_CHANNEL_COUNT] = {10, 11};
 
-
 static kernel_pid_t to_receive_pid;
 
 static msg_t rcv_queue[8];
@@ -44,19 +43,18 @@ PF_DATA pf_data;
 msg_t sample_done_msg;
 msg_t send_mutation_msg;
 
-
-int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate)
+int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold, uint16_t changerate)
 {
     pf_data.pf_threshold_chanagerate[channel].pf_threshold = threshold;
     pf_data.pf_threshold_chanagerate[channel].pf_chanagerate = changerate;
-   return 0;
+    return 0;
 }
 
 void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b)
 {
     pf_data.pf_threshold_chanagerate[channel].pf_cal_k_b = pf_cal_k_b;
 }
-uint16_t pf_get_threshold(uint8_t channel) 
+uint16_t pf_get_threshold(uint8_t channel)
 {
     return pf_data.pf_threshold_chanagerate[channel].pf_threshold;
 }
@@ -72,9 +70,10 @@ void set_default_pf_threshold_rate(void)
 {
     uint16_t default_threshold = 2047;
     uint16_t default_changerate = 4095;
-        
-    for (int i = 0; i < CHANNEL_COUNT; i++) {
-        pf_set_threshold_changerate(i,default_threshold,default_changerate);
+
+    for (int i = 0; i < CHANNEL_COUNT; i++)
+    {
+        pf_set_threshold_changerate(i, default_threshold, default_changerate);
         LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, default_threshold,
                  default_changerate);
     }
@@ -82,13 +81,13 @@ void set_default_pf_threshold_rate(void)
 
 void init_msg_send_is_done(void)
 {
-   mutation_msg_is_done = 1;
-   periodic_msg_is_done =1;
+    mutation_msg_is_done = 1;
+    periodic_msg_is_done = 1;
 }
 
 void send_mutation_msg_is_done(void)
 {
-   mutation_msg_is_done = 1;
+    mutation_msg_is_done = 1;
 }
 
 void calc_rms(RAW_DATA *raw_data, float *rms_data)
@@ -105,16 +104,16 @@ void calc_rms(RAW_DATA *raw_data, float *rms_data)
     }
 }
 
-int detect_mutation(float *rms_data,RAW_DATA *raw_data)
+int detect_mutation(float *rms_data, RAW_DATA *raw_data)
 {
     int i = 0;
-    for(i=0;i<CHANNEL_COUNT;i++)
+    for (i = 0; i < CHANNEL_COUNT; i++)
     {
         if (rms_data[i] > pf_data.pf_threshold_chanagerate[i].pf_threshold)
         {
             return 1;
         }
-        if((uint32_t)fabs((double)raw_data->data[0]-(double)raw_data->data[31]) >= pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
+        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >= pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
         {
             return 1;
         }
@@ -169,21 +168,27 @@ void do_receive_pid_hook(kernel_pid_t pid)
     to_receive_pid = pid;
 }
 
-
 int do_periodic_task;
 int general_call_task;
 msg_t send_periodic_msg;
-static PERIODIC_DATA periodic_data  ;
-
+msg_t send_general_call_msg;
+static PERIODIC_DATA periodic_data;
+static GENERAL_CALL_DATA general_call_data ;
 
 void clear_periodic_task(void)
 {
-   do_periodic_task = 0;
+    do_periodic_task = 0;
+}
+
+void clear_general_call_task(void)
+{
+   general_call_task = 0;
 }
 
 void init_task(void)
 {
-   clear_periodic_task();
+    clear_periodic_task();
+    clear_general_call_task();
 }
 void *internal_ad_sample_serv(void *arg)
 {
@@ -191,6 +196,7 @@ void *internal_ad_sample_serv(void *arg)
     msg_t msg;
     RAW_DATA *raw_data;
     int periodic_task_i = 0;
+    int general_call_task_i = 0;
     init_task();
 
     init_msg_send_is_done();
@@ -204,7 +210,7 @@ void *internal_ad_sample_serv(void *arg)
         msg_receive(&msg);
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
-        if (0)//detect_mutation(rms_data,raw_data)
+        if (0) //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
             {
@@ -217,7 +223,7 @@ void *internal_ad_sample_serv(void *arg)
             mutation_data.rms_data[0] = rms_data[0];
             mutation_data.rms_data[1] = rms_data[1];
             memcpy((void *)(&(mutation_data.wd.data[CHANNEL_COUNT * SAMPLE_COUNT])), (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
-            for(int i = 0;i < SAMPLE_COUNT;i++)
+            for (int i = 0; i < SAMPLE_COUNT; i++)
             {
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                 mutation_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
@@ -228,18 +234,39 @@ void *internal_ad_sample_serv(void *arg)
 
             periodic_task_i = 0;
             do_periodic_task = 0;
+            general_call_task_i = 0;
+            general_call_task = 0;
         }
         else
         {
             if (general_call_task)
             {
-                ;
+                if (general_call_task_i >= SAMPLE_COUNT)
+                {
+
+                    general_call_task_i = 0;
+                    send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
+                    send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
+                    msg_send(&send_general_call_msg, data_send_pf_pid);
+                    do_periodic_task = 0;
+                    continue;
+                }
+
+                for (int i = 0; i < SAMPLE_COUNT; i++)
+                {
+                    general_call_data.channel1[general_call_task_i] = raw_data->data[CHANNEL_COUNT * i + 0];
+                    general_call_data.channel2[general_call_task_i] = raw_data->data[CHANNEL_COUNT * i + 1];
+                    general_call_task_i++;
+                }
+                general_call_data.rms_data[0] = rms_data[0];
+                general_call_data.rms_data[1] = rms_data[1];
+                continue;
             }
             if (do_periodic_task)
             {
                 if (periodic_task_i >= SAMPLE_COUNT)
                 {
-                    
+
                     periodic_task_i = 0;
                     send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
                     send_periodic_msg.content.ptr = (void *)(&periodic_data);
@@ -256,7 +283,6 @@ void *internal_ad_sample_serv(void *arg)
                 }
                 periodic_data.rms_data[0] = rms_data[0];
                 periodic_data.rms_data[1] = rms_data[1];
-
             }
         }
     }
@@ -267,7 +293,7 @@ void set_data_collection_receiver(kernel_pid_t pid)
     self_pid = pid;
 }
 
-static char internal_ad_sample_thread_stack[THREAD_STACKSIZE_MAIN ];
+static char internal_ad_sample_thread_stack[THREAD_STACKSIZE_MAIN];
 
 kernel_pid_t internal_ad_sample_serv_init(void)
 {
@@ -278,12 +304,7 @@ kernel_pid_t internal_ad_sample_serv_init(void)
     return _pid;
 }
 
-
-
-
-
 void pray_periodic_task(void)
 {
-   do_periodic_task = 1;
+    do_periodic_task = 1;
 }
-

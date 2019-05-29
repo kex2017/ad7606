@@ -25,6 +25,7 @@ void *period_data_serv(void *arg)
     msg_t msg;
     msg.type = PERIOD_DATA_TYPE;
     while (1) {
+
         delay_s(cfg_get_device_data_interval());
         msg_send(&msg, data_send_pid);
         pray_periodic_task();

@@ -124,14 +124,14 @@ int detect_mutation(float *rms_data,RAW_DATA *raw_data)
 }
 
 static kernel_pid_t self_pid;
-static kernel_pid_t data_recv_pid;
+static kernel_pid_t data_send_pf_pid;
 RAW_DATA irq_packet[5];
 msg_t irq_msg[5];
 int irq_packet_i;
 
 void pf_data_recv_hook(kernel_pid_t pid)
 {
-    data_recv_pid = pid;
+    data_send_pf_pid = pid;
 }
 static void pf_sample_buff_cb(void)
 {
@@ -204,8 +204,7 @@ void *internal_ad_sample_serv(void *arg)
         msg_receive(&msg);
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
-        // printf("raw_data[0] = %f,raw_data[1] = %f\r\n",rms_data[0],rms_data[1]);
-        if (0)  //detect_mutation(rms_data,raw_data)
+        if (0)//detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
             {
@@ -225,14 +224,13 @@ void *internal_ad_sample_serv(void *arg)
             }
             send_mutation_msg.type = PF_CURVE_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
-            msg_send(&(send_mutation_msg), data_recv_pid);
+            msg_send(&(send_mutation_msg), data_send_pf_pid);
 
             periodic_task_i = 0;
             do_periodic_task = 0;
         }
         else
         {
-            printf("do_periodic_task = %d\r\n",do_periodic_task);
             if (general_call_task)
             {
                 ;
@@ -241,12 +239,12 @@ void *internal_ad_sample_serv(void *arg)
             {
                 if (periodic_task_i >= SAMPLE_COUNT)
                 {
+                    
                     periodic_task_i = 0;
                     send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
                     send_periodic_msg.content.ptr = (void *)(&periodic_data);
-                    msg_send(&send_periodic_msg, data_recv_pid);
+                    msg_send(&send_periodic_msg, data_send_pf_pid);
                     do_periodic_task = 0;
-                    // printf("do_periodic_task = %d\r\n",do_periodic_task);
                     continue;
                 }
 

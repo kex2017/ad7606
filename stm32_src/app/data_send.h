@@ -9,12 +9,17 @@
 #define APP_DATA_SEND_H_
 
 #include "kernel_types.h"
+#include "over_current.h"
 
 #define PERIOD_DATA_TYPE 0
 #define PF_CURVE_TYPE 1
 
+
 #define MAX_FRAME_LEN 256
 #define PACKET_DATA_LEN 200
+
+#define PF_PERIOD_DATA_TYPE 3
+
 
 #define CHANNEL_1 0x01
 #define CHANNEL_2 0x02

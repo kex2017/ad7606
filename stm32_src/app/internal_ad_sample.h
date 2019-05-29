@@ -67,10 +67,6 @@ typedef struct _periodic_data {
    float rms_data[PF_CHANNEL_COUNT];
 } PERIODIC_DATA;
 
-typedef enum{
-   MUTATION_DATA_TYPE = 1,
-   PERIODIC_DATA_TYPE,
-}MSG_TYPE;
 
 kernel_pid_t internal_ad_sample_serv_init(void);
 

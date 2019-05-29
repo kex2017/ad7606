@@ -19,6 +19,7 @@
 #include "heart_beat.h"
 #include "x_delay.h"
 #include "env_cfg.h"
+#include "data_send.h"
 
 __IO uint16_t sample_buf[CHANNEL_COUNT * SAMPLE_COUNT];
 
@@ -71,7 +72,7 @@ void set_default_pf_threshold_rate(void)
 {
     uint16_t default_threshold = 2047;
     uint16_t default_changerate = 4095;
-
+        
     for (int i = 0; i < CHANNEL_COUNT; i++) {
         pf_set_threshold_changerate(i,default_threshold,default_changerate);
         LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, default_threshold,
@@ -190,14 +191,13 @@ void *internal_ad_sample_serv(void *arg)
     msg_t msg;
     RAW_DATA *raw_data;
     int periodic_task_i = 0;
-
     init_task();
+
     init_msg_send_is_done();
     set_default_pf_threshold_rate();
     msg_init_queue(rcv_queue, 8);
     pf_sample_init();
     msg_receive(&msg);
-
     raw_data = (RAW_DATA *)(msg.content.ptr);
     while (1)
     {
@@ -205,8 +205,7 @@ void *internal_ad_sample_serv(void *arg)
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
         // printf("raw_data[0] = %f,raw_data[1] = %f\r\n",rms_data[0],rms_data[1]);
-
-        if (detect_mutation(rms_data,raw_data))
+        if (0)  //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
             {
@@ -224,7 +223,7 @@ void *internal_ad_sample_serv(void *arg)
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                 mutation_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
             }
-            send_mutation_msg.type = MUTATION_DATA_TYPE;
+            send_mutation_msg.type = PF_CURVE_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
             msg_send(&(send_mutation_msg), data_recv_pid);
 
@@ -233,21 +232,21 @@ void *internal_ad_sample_serv(void *arg)
         }
         else
         {
+            printf("do_periodic_task = %d\r\n",do_periodic_task);
             if (general_call_task)
             {
                 ;
             }
             if (do_periodic_task)
             {
-
                 if (periodic_task_i >= SAMPLE_COUNT)
                 {
-                    printf("periodic_task");
                     periodic_task_i = 0;
-                    send_periodic_msg.type = PERIODIC_DATA_TYPE;
+                    send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
                     send_periodic_msg.content.ptr = (void *)(&periodic_data);
                     msg_send(&send_periodic_msg, data_recv_pid);
                     do_periodic_task = 0;
+                    // printf("do_periodic_task = %d\r\n",do_periodic_task);
                     continue;
                 }
 
@@ -270,12 +269,12 @@ void set_data_collection_receiver(kernel_pid_t pid)
     self_pid = pid;
 }
 
-static char vc_temp_bat_sample_thread_stack[THREAD_STACKSIZE_MAIN ];
+static char internal_ad_sample_thread_stack[THREAD_STACKSIZE_MAIN ];
 
 kernel_pid_t internal_ad_sample_serv_init(void)
 {
-    kernel_pid_t _pid = thread_create(vc_temp_bat_sample_thread_stack, sizeof(vc_temp_bat_sample_thread_stack),
-                                      VC_TEMP_BAT_SAMPLE_SERV_PRIORITY, THREAD_CREATE_STACKTEST, internal_ad_sample_serv, NULL,
+    kernel_pid_t _pid = thread_create(internal_ad_sample_thread_stack, sizeof(internal_ad_sample_thread_stack),
+                                      INTERNAL_AD_SAMPLE_SERV_PRIORITY, THREAD_CREATE_STACKTEST, internal_ad_sample_serv, NULL,
                                       "Power frequency sample serv");
     set_data_collection_receiver(_pid);
     return _pid;

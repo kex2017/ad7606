@@ -139,6 +139,7 @@ kernel_pid_t data_send_serv_init(void)
     period_data_hook(_pid);
     over_current_hook(_pid);
     pf_data_recv_hook(_pid);
+    request_data_hook(_pid);
 
     return _pid;
 }

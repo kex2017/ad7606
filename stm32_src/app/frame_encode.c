@@ -92,13 +92,14 @@ uint16_t frame_cs_encode(uint8_t *data, uint8_t cs)
     return frame_uint8_encode(data,cs);
 }
 
-uint16_t frame_time_ctrl_data_encode(uint8_t *data, uint8_t errorcode, uint32_t timestamp)
+uint16_t frame_time_ctrl_data_encode(uint8_t *data, uint8_t errorcode,uint8_t type, uint32_t timestamp)
 {
 	uint16_t index = 0;
 
 	index += frame_header_encode(data+index, cfg_get_device_id(), TIME_CTRL_RSP_DATA_LEN);
 	index += frame_uint8_encode(data+index, TIME_CTRL_RSP);
 	index += frame_uint8_encode(data+index, errorcode);
+	index += frame_uint8_encode(data+index, type);
 	index += frame_uint32_encode(data+index, timestamp);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 

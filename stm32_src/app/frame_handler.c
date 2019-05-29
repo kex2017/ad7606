@@ -12,6 +12,7 @@
 #include "periph/rtt.h"
 #include "ec20_at.h"
 #include "env_cfg.h"
+#include "data_send.h"
 #include "periph/pm.h"
 #include "type_alias.h"
 #include "x_delay.h"
@@ -45,7 +46,7 @@ void time_ctrl_handler(frame_req_t *frame_req)
 	{
 		LOG_INFO("Receive get dev time command");
 	}
-	length = frame_time_ctrl_data_encode(data, DEVICEOK, rtt_get_counter());
+	length = frame_time_ctrl_data_encode(data, DEVICEOK, time_info->type, rtt_get_counter());
 
 	msg_send_pack(data, length);
 }
@@ -188,6 +189,7 @@ void get_calibration_info_handler(void)
 void do_send_dev_info_msg(void)
 {
     get_dev_info_handler();
+    delay_ms(200);
     get_calibration_info_handler();
 }
 
@@ -203,16 +205,21 @@ void reboot_handler(void)
 	soft_reset();
 }
 
+static kernel_pid_t data_send_pid;
+void request_data_hook(kernel_pid_t pid)
+{
+    data_send_pid = pid;
+}
+
 void server_request_data_handler(frame_req_t *frame_req)
 {
+	msg_t msg;
 	switch(frame_req->frame_req.requset_data.type){
 	case 0:
 		break;
 	case 1:
-		break;
-	case 2:
-		break;
-	case 3:
+		msg.type = PERIOD_DATA_TYPE;
+		msg_send(&msg, data_send_pid);
 		break;
 	default:
 		LOG_ERROR("ERROR DATA TYPE, ERROR CODE : %02x", frame_req->frame_req.requset_data.type);

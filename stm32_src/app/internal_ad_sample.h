@@ -9,6 +9,7 @@
 #define INTERNAL_AD_SAMPLE_H_
 #include "thread.h"
 
+
 typedef enum
 {
     LINEA = 0,
@@ -19,6 +20,7 @@ typedef enum
 #define SAMPLE_COUNT 64
 #define CHANNEL_COUNT 2
 #define SAMPLE_DURATION_MS 20
+#define PF_CHANNEL_COUNT 2
 
 #define TEMP_ADC2_CHAN_CNT 2
 #define TEMP_BAT_ADC3_CHAN_CNT 2
@@ -54,13 +56,15 @@ typedef struct _wave_data
 typedef struct _mutation_data
 {
     WAVE_DATA wd;
-    uint32_t channel1[SAMPLE_COUNT];
-    uint32_t channel2[SAMPLE_COUNT];
+    uint16_t channel1[SAMPLE_COUNT];
+    uint16_t channel2[SAMPLE_COUNT];
+    float rms_data[PF_CHANNEL_COUNT];
 } MUTATION_DATA;
 
 typedef struct _periodic_data {
-   uint32_t channel1[SAMPLE_COUNT];
-   uint32_t channel2[SAMPLE_COUNT];
+   uint16_t channel1[SAMPLE_COUNT];
+   uint16_t channel2[SAMPLE_COUNT];
+   float rms_data[PF_CHANNEL_COUNT];
 } PERIODIC_DATA;
 
 typedef enum{
@@ -72,8 +76,9 @@ kernel_pid_t internal_ad_sample_serv_init(void);
 
 uint16_t get_line_temp(line_temperature_t line);
 void do_receive_pid_hook(kernel_pid_t pid);
-void set_periodic_task_thread_init(void);
 void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b);
+void pf_data_recv_hook(kernel_pid_t pid);
+void pray_periodic_task(void);
 uint16_t pf_get_threshold(uint8_t channel);
 uint16_t pf_get_changerate(uint8_t channel);
 pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel);

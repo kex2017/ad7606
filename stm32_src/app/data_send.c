@@ -11,6 +11,7 @@
 #include "over_current.h"
 #include "periph/rtt.h"
 #include "data_send.h"
+#include "internal_ad_sample.h"
 
 void send_high_current_cycle_data(void)
 {
@@ -68,18 +69,55 @@ void send_over_current_curve(void)
     }
 }
 
+void send_mutation_data(MUTATION_DATA* md)
+{
+   uint8_t data[1024] = {0};
+   uint16_t length = 0;
+
+   LOG_INFO("start send mutatuin time");
+
+   length = current_mutation_data_encode(data,0x01,rtt_get_counter(),CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   msg_send_pack(data,length);
+
+   length = current_mutation_data_encode(data,0x01,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   msg_send_pack(data,length);
+   LOG_INFO("send mutatuin data done");
+}
+
+void send_periodic_data(PERIODIC_DATA* pd)
+{
+   uint8_t data[1024] = {0};
+   uint16_t length = 0;
+
+   LOG_INFO("start send mutatuin time");
+
+   length = current_cycle_data_encode(data,0x01,(uint32_t)pd->rms_data[0],(uint32_t)pd->rms_data[1],rtt_get_counter());
+   msg_send_pack(data,length);
+
+   LOG_INFO("send mutatuin data done");
+
+}
+
+static msg_t send_task_rcv_queue[8];
 void *data_send_serv(void *arg)
 {
     (void)arg;
     msg_t msg;
+    MUTATION_DATA* md;
+    PERIODIC_DATA* pd;
+    msg_init_queue(send_task_rcv_queue, 8);
     while (1) {
         msg_receive(&msg);
         switch (msg.type) {
         case PERIOD_DATA_TYPE:
             upload_period_data();
+            pd = (PERIODIC_DATA*)(msg.content.ptr);
+            send_periodic_data(pd);
             break;
         case PF_CURVE_TYPE:
-
+            md = (MUTATION_DATA*)(msg.content.ptr);
+            send_mutation_data(md);
+            // send_mutation_msg_is_done();
             break;
         case HF_CURVE_TYPE:
             send_over_current_curve();
@@ -100,6 +138,8 @@ kernel_pid_t data_send_serv_init(void)
                                       THREAD_CREATE_STACKTEST, data_send_serv, NULL, "period data serv");
     period_data_hook(_pid);
     over_current_hook(_pid);
+    pf_data_recv_hook(_pid);
+
     return _pid;
 }
 

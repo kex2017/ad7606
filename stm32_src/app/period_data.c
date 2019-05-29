@@ -11,6 +11,7 @@
 #include "over_current.h"
 #include "periph/rtt.h"
 #include "data_send.h"
+#include "internal_ad_sample.h"
 
 static kernel_pid_t data_send_pid;
 void period_data_hook(kernel_pid_t pid)
@@ -26,6 +27,7 @@ void *period_data_serv(void *arg)
     while (1) {
         delay_s(cfg_get_device_data_interval());
         msg_send(&msg, data_send_pid);
+        pray_periodic_task();
     }
 }
 

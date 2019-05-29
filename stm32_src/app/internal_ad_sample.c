@@ -17,17 +17,18 @@
 #include "log.h"
 #include "heart_beat.h"
 #include "x_delay.h"
+#include "env_cfg.h"
 
 __IO uint16_t sample_buf[CHANNEL_COUNT * SAMPLE_COUNT];
 
-uint16_t pf_adc1_channel_list[CHANNEL_COUNT] = {10, 11};
+uint16_t pf_adc1_channel_list[PF_CHANNEL_COUNT] = {10, 11};
 
 
 static kernel_pid_t to_receive_pid;
 
 static msg_t rcv_queue[8];
 
-static float rms_data[CHANNEL_COUNT] = {0};
+static float rms_data[PF_CHANNEL_COUNT] = {0};
 
 static MUTATION_DATA mutation_data;
 
@@ -114,6 +115,10 @@ RAW_DATA irq_packet[5];
 msg_t irq_msg[5];
 int irq_packet_i;
 
+void pf_data_recv_hook(kernel_pid_t pid)
+{
+    data_recv_pid = pid;
+}
 static void pf_sample_buff_cb(void)
 {
     if (irq_packet_i == 7)
@@ -208,13 +213,13 @@ void *internal_ad_sample_serv(void *arg)
                 printf("mutation data not send done\r\n");
                 continue;
             }
-            mutation_data.wd.time = rtt_get_counter();
+            mutation_data.rms_data[0] = rms_data[0];
+            mutation_data.rms_data[1] = rms_data[1];
             memcpy((void *)(&(mutation_data.wd.data[CHANNEL_COUNT * SAMPLE_COUNT])), (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
-
             for(int i = 0;i < SAMPLE_COUNT;i++)
             {
-                mutation_data.channel1[i] = (uint32_t)(raw_data->data[CHANNEL_COUNT * i + 0]);
-                mutation_data.channel2[i] = (uint32_t)(raw_data->data[CHANNEL_COUNT * i + 1]);
+                mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
+                mutation_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
             }
             send_mutation_msg.type = MUTATION_DATA_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
@@ -242,10 +247,13 @@ void *internal_ad_sample_serv(void *arg)
 
                 for (int i = 0; i < SAMPLE_COUNT; i++)
                 {
-                    periodic_data.channel1[periodic_task_i] = (uint32_t)(raw_data->data[CHANNEL_COUNT * i + 0]);
-                    periodic_data.channel2[periodic_task_i] = (uint32_t)(raw_data->data[CHANNEL_COUNT * i + 1]);
+                    periodic_data.channel1[periodic_task_i] = raw_data->data[CHANNEL_COUNT * i + 0];
+                    periodic_data.channel2[periodic_task_i] = raw_data->data[CHANNEL_COUNT * i + 1];
                     periodic_task_i++;
                 }
+                periodic_data.rms_data[0] = rms_data[0];
+                periodic_data.rms_data[1] = rms_data[1];
+
             }
         }
     }
@@ -277,28 +285,3 @@ void pray_periodic_task(void)
    do_periodic_task = 1;
 }
 
-
-
-void *periodic_task_handler(void* arg)
-{
-   (void)arg;
-   // periodic_time = cfg_get_device_data_interval();
-   while(1)
-   {
-      delay_s(10);
-      printf("time to start periodic task");
-      pray_periodic_task();
-   }
-
-}
-
-static char periodic_task_thread_stack[THREAD_STACKSIZE_MAIN];
-void set_periodic_task_thread_init(void)
-{
-   printf("periodic task thread start....");
-   kernel_pid_t _pid;
-   _pid = thread_create(periodic_task_thread_stack, sizeof(periodic_task_thread_stack),
-      THREAD_PRIORITY_MAIN - 1,
-      THREAD_CREATE_STACKTEST, periodic_task_handler, NULL, "periodic_task_handler");
-   (void)_pid;
-}

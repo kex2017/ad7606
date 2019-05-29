@@ -15,7 +15,6 @@ extern "C" {
 #define OVER_CURRENT_PRIO              (6)
 
 typedef struct _over_current_data{
-    uint8_t happen_flag;
     uint32_t curve_len;
     uint16_t curve_data[MAX_FPGA_DATA_LEN];
     uint32_t ns_cnt;
@@ -43,11 +42,9 @@ cal_k_b_t get_over_current_cal_k_b(uint8_t channel);
 void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b);
 
 
-over_current_data_t *get_over_current_data(uint8_t channel);
+over_current_data_t *get_over_current_data(void);
 int get_over_current_max(uint8_t channel);
 int get_over_current_avr(uint8_t channel);
-
-void over_current_hook(kernel_pid_t pid);
 
 #ifdef __cplusplus
 }

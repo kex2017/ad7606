@@ -33,8 +33,6 @@ void OVER_CURRENT_EXIT2_IRQHandler(void *arg)
     msg_t msg;
     if(NVIC_GetActive(EXTI2_IRQn) != 0) {
         NVIC_ClearPendingIRQ(EXTI2_IRQn);
-        disable_over_current_irq();
-        printf("over current irq...\r\n");
         msg_send(&msg, over_current_pid);
     }
 }
@@ -49,7 +47,7 @@ void over_current_event_pins_init(void)
 
 /********************over current event******************************/
 over_current_info_t g_over_current_info[MAX_OVER_CURRENT_CHANNEL_COUNT] = { {0} };
-over_current_data_t g_over_current_data[MAX_OVER_CURRENT_CHANNEL_COUNT] = { {0} };
+over_current_data_t g_over_current_data = {0};
 
 /******************over current info*******************/
 void set_over_current_threshold(uint8_t channel, uint16_t threshold)
@@ -97,9 +95,9 @@ uint32_t read_over_current_sample_length(uint8_t channel)
     return daq_spi_get_data_len(channel);
 }
 
-void set_over_current_ns_cnt(uint8_t channel)
+uint32_t read_over_current_ns_cnt(uint8_t channel)
 {
-    g_over_current_data[channel].ns_cnt = daq_spi_chan_cnt_since_plus(channel);
+    return daq_spi_chan_cnt_since_plus(channel);
 }
 
 void read_over_current_sample_data(uint8_t channel, uint8_t *data, uint32_t addr, size_t byte_len)
@@ -107,9 +105,9 @@ void read_over_current_sample_data(uint8_t channel, uint8_t *data, uint32_t addr
     daq_spi_sample_data_read(channel, data, addr, byte_len);
 }
 
-over_current_data_t *get_over_current_data(uint8_t channel)
+over_current_data_t *get_over_current_data(void)
 {
-    return &g_over_current_data[channel];
+    return &g_over_current_data;
 }
 
 /**************************end*********************/
@@ -126,7 +124,7 @@ void clear_over_current_sample_done_flag(uint8_t channel)
 
 void set_default_threshold_rate(void)
 {
-    uint16_t default_threshold = 2047;
+    uint16_t default_threshold = 200;
     uint16_t default_changerate = 4095;
 
     for (int channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
@@ -143,43 +141,41 @@ void init_over_current_irq(void)
     enable_over_current_irq();
 }
 
-static kernel_pid_t data_send_pid;
-void over_current_hook(kernel_pid_t pid)
-{
-    data_send_pid = pid;
-}
-
 static void *over_current_event_service(void *arg)
 {
     (void)arg;
-    msg_t recv_msg, msg;
+//    msg_t recv_msg;
     uint8_t channel = 0;
     uint32_t length = 0;
 
-    msg.type = HF_CURVE_TYPE;
     init_over_current_irq();
     set_default_threshold_rate();
 
     while (1) {
-        msg_receive(&recv_msg);
+//        msg_receive(&recv_msg);
         for (channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             if (0 < check_over_current_sample_done(channel)) {
                 if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
                     LOG_WARN("Get over current curve data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", length);
                     continue;
                 }
-                set_over_current_ns_cnt(channel);
-                g_over_current_data[channel].curve_len = length;
-                g_over_current_data[channel].happen_flag = 1;
-                read_over_current_sample_data(channel, (uint8_t*)(g_over_current_data[channel].curve_data), 0, length);
-                LOG_INFO("over current of channel:%d curve data length:%d ", channel, length);
+                g_over_current_data.curve_len = length;
+                read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);
+//                printf("read data is :\r\n");
+//                for(uint16_t i = 0; i < length; i++){
+//                    if(i+1 == 20)printf("\r\n");
+//                    printf("%02x%02x ",(uint8_t)g_over_current_data[channel].curve_data[i],(uint8_t)g_over_current_data[channel].curve_data[i]>>8);
+//                }
+                g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
+                LOG_INFO("channel %d length is %d ns cnt is %ld\r\n", channel, length, g_over_current_data.ns_cnt);
+
+                send_over_current_curve(&g_over_current_data, channel);
+                memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                 clear_over_current_sample_done_flag(channel);
             }
         }
-        msg_send(&msg, data_send_pid);
-        enable_over_current_irq();
+        delay_ms(200);
     }
-    /* never reached */
     return NULL;
 }
 

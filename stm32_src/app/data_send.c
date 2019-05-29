@@ -29,43 +29,32 @@ void send_high_current_cycle_data(void)
     msg_send_pack(data, len);
 }
 
-static void upload_period_data(void)
-{
-    send_high_current_cycle_data();
-    //发送其他周期数据
-}
-
-#define PACKET_DATA_LEN 200
-void send_over_current_curve(void)
+void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel)
 {
     uint16_t len = 0;
-    uint8_t data[256] = {0};
+    uint8_t data[MAX_FRAME_LEN] = {0};
     uint8_t pk_data[PACKET_DATA_LEN] = {0};
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;
 
-    over_current_data_t *p_over_current_data = NULL;
-    for(uint8_t channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++){
-        p_over_current_data = get_over_current_data(channel);
-        if (p_over_current_data->happen_flag) {
-            pkg_num = p_over_current_data->curve_len / PACKET_DATA_LEN;
-            if ((left_data_len = (p_over_current_data->curve_len % PACKET_DATA_LEN))) {
-                pkg_num += 1;
-            }
-            for(uint16_t i = 0; i < pkg_num; i++){
-                memset(pk_data, 0, PACKET_DATA_LEN);
-                if(left_data_len && (i == pkg_num-1)){
-                    memcpy(pk_data, p_over_current_data->curve_data + i*PACKET_DATA_LEN, left_data_len);
-                    len = high_current_mutation_data_encode(data, DEVICEOK, p_over_current_data->ns_cnt, channel, pkg_num, i, pk_data, left_data_len);
-                }
-                else{
-                    memcpy(pk_data, p_over_current_data->curve_data + i*PACKET_DATA_LEN, PACKET_DATA_LEN);
-                    len = high_current_mutation_data_encode(data, DEVICEOK, p_over_current_data->ns_cnt, channel, pkg_num, i, pk_data, PACKET_DATA_LEN);
-                }
-                msg_send_pack(data, len);
-                delay_ms(100);
-            }
+    pkg_num = over_current_data->curve_len / PACKET_DATA_LEN;
+    if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {
+        pkg_num += 1;
+    }
+    for (uint16_t i = 0; i < pkg_num; i++) {
+        memset(pk_data, 0, PACKET_DATA_LEN);
+        if (left_data_len && (i == pkg_num - 1)) {
+            memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, left_data_len);
+            len = high_current_mutation_data_encode(data, DEVICEOK, over_current_data->ns_cnt, channel, pkg_num, i,
+                                                    pk_data, left_data_len);
         }
+        else {
+            memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
+            len = high_current_mutation_data_encode(data, DEVICEOK, over_current_data->ns_cnt, channel, pkg_num, i,
+                                                    pk_data, PACKET_DATA_LEN);
+        }
+        msg_send_pack(data, len);
+        delay_ms(100);
     }
 }
 
@@ -99,6 +88,12 @@ void send_periodic_data(PERIODIC_DATA* pd)
 }
 
 static msg_t send_task_rcv_queue[8];
+
+static void upload_period_data(void)
+{
+    send_high_current_cycle_data();
+}
+
 void *data_send_serv(void *arg)
 {
     (void)arg;
@@ -119,9 +114,6 @@ void *data_send_serv(void *arg)
             send_mutation_data(md);
             send_mutation_msg_is_done();
             break;
-        case HF_CURVE_TYPE:
-            send_over_current_curve();
-            break;
         default:
             break;
         }
@@ -137,10 +129,8 @@ kernel_pid_t data_send_serv_init(void)
                                       DATA_SEND_PRIORITY,
                                       THREAD_CREATE_STACKTEST, data_send_serv, NULL, "period data serv");
     period_data_hook(_pid);
-    over_current_hook(_pid);
     pf_data_recv_hook(_pid);
     request_data_hook(_pid);
-
     return _pid;
 }
 

@@ -74,40 +74,51 @@ uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_
 	return sizeof(uint32_t)*8;
 }
 
+uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+	master_frame_req->frame_req.requset_data.type = frame_data[0];
+	return sizeof(uint8_t);
+}
 
 uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
-    uint32_t index = 0;
-    uint16_t ret = 0;
+	uint32_t index = 0;
+	uint16_t ret = 0;
 
-    index += frame_func_code_decode(frame_data + index, &master_frame_req->func_code);
-    switch(master_frame_req->func_code) {
-    case  TIME_CTRL_REQ:
-    	ret = frame_time_ctrl_decode( frame_data+index, master_frame_req);
-	break;
-    case GET_RUNNING_STATE_REQ:
-    	ret = frame_on_need_decode();
-    	break;
-    case GET_CHANNEL_INFO_REQ:
-    	ret = frame_on_need_decode();
-	break;
-    case SET_CHANNEL_INFO_REQ:
-    	ret = frame_set_channel_info_decode(frame_data+index, master_frame_req);
-	break;
-    case GET_DEV_INFO_REQ:
-    	ret = frame_on_need_decode();
-	break;
-    case SET_CALIBRATION_INFO_REQ:
-    	ret = frame_calibration_info_decode(frame_data+index, master_frame_req);
-    	break;
-    case GET_CALIBRATION_INFO_REQ:
-    	ret = frame_on_need_decode();
-    	break;
-    default:
-    	LOG_ERROR("Receive error command type %02x",master_frame_req->func_code );
-    	break;
-    }
-    return ret;
+	index += frame_func_code_decode(frame_data + index, &master_frame_req->func_code);
+	switch (master_frame_req->func_code) {
+	case TIME_CTRL_REQ:
+		ret = frame_time_ctrl_decode(frame_data + index, master_frame_req);
+		break;
+	case GET_RUNNING_STATE_REQ:
+		ret = frame_on_need_decode();
+		break;
+	case GET_CHANNEL_INFO_REQ:
+		ret = frame_on_need_decode();
+		break;
+	case SET_CHANNEL_INFO_REQ:
+		ret = frame_set_channel_info_decode(frame_data + index, master_frame_req);
+		break;
+	case GET_DEV_INFO_REQ:
+		ret = frame_on_need_decode();
+		break;
+	case SET_CALIBRATION_INFO_REQ:
+		ret = frame_calibration_info_decode(frame_data + index, master_frame_req);
+		break;
+	case GET_CALIBRATION_INFO_REQ:
+		ret = frame_on_need_decode();
+		break;
+	case REBOOT_ARM_REQ:
+		ret = frame_on_need_decode();
+		break;
+	case SERVER_REQUEST_DATA_REQ:
+		ret = frame_request_data_decode(frame_data + index, master_frame_req);
+		break;
+	default:
+		LOG_ERROR("Receive error command type %02x", master_frame_req->func_code);
+		break;
+	}
+	return ret;
 }
 
 

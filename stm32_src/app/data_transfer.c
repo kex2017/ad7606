@@ -201,7 +201,7 @@ void *frame_parser_data(void *arg)
 
 #define FRAME_PARSER_PRIO (5)
 kernel_pid_t frame_parser_data_pid = KERNEL_PID_UNDEF;
-static char frame_parser_data_stack[DATA_TRANSFER_STACKSIZE*2];
+static char frame_parser_data_stack[DATA_TRANSFER_STACKSIZE];
 kernel_pid_t frame_parser_data_init(void)
 {
     if (frame_parser_data_pid == KERNEL_PID_UNDEF) {

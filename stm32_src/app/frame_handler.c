@@ -5,6 +5,8 @@
 #include "frame_encode.h"
 #include "frame_common.h"
 #include "internal_ad_sample.h"
+#include "upgrade_from_flash.h"
+#include "app_upgrade.h"
 #include "data_transfer.h"
 #include "over_current.h"
 #include "periph/rtt.h"
@@ -168,11 +170,13 @@ void get_calibration_info_handler(void)
 	for(int i = 0; i< 2; i++){
 		calibration_data[i] = cfg_get_calibration_k_b(i);
 		calibration_info.cal_data[i*2] = calibration_data[i]->k;
+//		printf("current: %.1f\r\n",calibration_data[i]->k);
 		calibration_info.cal_data[i*2+1] = calibration_data[i]->b;
 	}
 	for (int i = 0; i < 2; i++) {
 		calibration_data[i+2] = cfg_get_high_calibration_k_b(i);
 		calibration_info.cal_data[i*2+4] = calibration_data[i+2]->k;
+//		printf("high current:%.1f\r\n",calibration_data[i+2]->k);
 		calibration_info.cal_data[i*2+5] = calibration_data[i+2]->b;
 	}
 
@@ -186,6 +190,75 @@ void do_send_dev_info_msg(void)
     get_dev_info_handler();
     get_calibration_info_handler();
 }
+
+void reboot_handler(void)
+{
+	uint16_t length = 0;
+	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
+	length = frame_reboot_encode(data, DEVICEOK,rtt_get_counter());
+
+	msg_send_pack(data, length);
+
+	delay_s(1);
+	soft_reset();
+}
+
+void server_request_data_handler(frame_req_t *frame_req)
+{
+	switch(frame_req->frame_req.requset_data.type){
+	case 0:
+		break;
+	case 1:
+		break;
+	case 2:
+		break;
+	case 3:
+		break;
+	default:
+		LOG_ERROR("ERROR DATA TYPE, ERROR CODE : %02x", frame_req->frame_req.requset_data.type);
+		break;
+	}
+}
+
+void upload_file_req_handler(frame_req_t *frame_req)
+{
+   uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
+   uint16_t file_count = 0;
+   uint16_t file_index = 0;
+   uint8_t file_type = 0;
+   uint8_t last_packet = 1;
+   uint16_t length = 0;
+   uint8_t errcode = DEVICEOK;
+
+   file_count = frame_req->frame_req.transfer_file_req.file_count;
+   file_index = frame_req->frame_req.transfer_file_req.file_index;
+   file_type = frame_req->frame_req.transfer_file_req.file_type;
+
+   if (0 == file_index) {
+      LOG_DEBUG("Start to upload arm program file, during file transfer, ignore new data.");
+      set_arm_file_transfer_flag(SD_TRUE);
+   }
+
+   if (file_index >= file_count) {
+      LOG_WARN("upload file request frame invalid: file_index(%d) >= file_count(%d)", file_index, file_count);
+      errcode = TRANSFERERR;
+      set_arm_file_transfer_flag(SD_FALSE);
+   }
+   else if (SD_TRUE != process_upload_file_req(&frame_req->frame_req.transfer_file_req, &last_packet)) {
+      LOG_ERROR("process upload file request failed!, file_index(%d), file_count(%d), file_type(%d)", file_index,
+                file_count, file_type);
+      errcode = TRANSFERERR;
+      set_arm_file_transfer_flag(SD_FALSE);
+   }
+   LOG_INFO("Upload file pkt info: type:%d, total:%d, index:%d, last_flag:%d", file_type, file_count, file_index,
+            last_packet);
+   length = frame_transfer_file_rsp_encode(data, errcode, frame_req->frame_req.transfer_file_req.file_type, file_index);
+   msg_send_pack(data, length);
+   if (SD_TRUE == last_packet) {
+      process_upgrade_programe_req(frame_req->frame_req.transfer_file_req.md5, file_type);
+   }
+}
+
 
 void frame_handler(frame_req_t *frame_req)
 {
@@ -217,6 +290,17 @@ void frame_handler(frame_req_t *frame_req)
     	LOG_INFO("Receive get calibration info command");
     	get_calibration_info_handler();
     	break;
+    case REBOOT_ARM_REQ:
+    	LOG_INFO("Receive reboot command");
+    	reboot_handler();
+    	break;
+	case SERVER_REQUEST_DATA_REQ:
+		LOG_INFO("Receive request data command");
+		server_request_data_handler(frame_req);
+		break;
+	case FRAME_TRANSFER_FILE_REQ:
+	     upload_file_req_handler(frame_req);
+	break;
 	default:
 		break;
 	}

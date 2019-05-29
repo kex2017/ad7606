@@ -155,6 +155,20 @@ uint16_t frame_set_calibration_info_encode(uint8_t *data, uint8_t errorcode,uint
     return index;
 }
 
+uint16_t frame_reboot_encode(uint8_t *data, uint8_t errorcode,uint32_t timestamp )
+{
+	uint16_t index = 0;
+
+	index += frame_header_encode(data+index, cfg_get_device_id(), REBOOT_ARM_RSP_DATA_LEN);
+	index += frame_uint8_encode(data+index, REBOOT_ARM_RSP);
+	index += frame_uint8_encode(data+index, errorcode);
+	index += frame_uint32_encode(data+index, timestamp);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
+
+
 uint16_t frame_get_calibration_info_encode(uint8_t *data, uint8_t errorcode, calibration_info_t *calibration_info)
 {
 	uint16_t index = 0;
@@ -272,6 +286,20 @@ uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, ui
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
 	return index;
+}
+
+uint16_t frame_transfer_file_rsp_encode(uint8_t *data, uint8_t errcode, uint8_t file_type, uint16_t cur_packet)
+{
+    uint16_t index = 0;
+
+    index += frame_header_encode(data, cfg_get_device_id(), FRAME_TRANSFER_FILE_RSP_DATA_LEN);
+    index += frame_uint8_encode(data + index, FRAME_TRANSFER_FILE_RSP);
+    index += frame_uint8_encode(data + index, errcode);
+    index += frame_uint8_encode(data + index, file_type);
+    index += frame_uint16_encode(data + index, cur_packet);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
 }
 
 uint16_t frame_heart_beat_encode(uint8_t *data, uint8_t errcode, uint32_t timestamp)

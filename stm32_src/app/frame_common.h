@@ -59,6 +59,16 @@
 #define GET_CALIBRATION_INFO_RSP 0xAE
 #define GET_CALIBRATION_INFO_RSP_DATA_LEN  0x22
 
+#define REBOOT_ARM_REQ 0xB0
+#define REBOOT_ARM_RSP 0xB1
+#define REBOOT_ARM_RSP_DATA_LEN 0x06
+
+#define FRAME_TRANSFER_FILE_REQ   0X68
+#define FRAME_TRANSFER_FILE_RSP   0X69
+#define FRAME_TRANSFER_FILE_RSP_DATA_LEN   0X05
+
+#define SERVER_REQUEST_DATA_REQ 0x50
+
 #define POWER_CURRENT_RSP 0x52
 #define POWER_CURRENT_RSP_DATA_LEN 0x0E
 
@@ -96,6 +106,19 @@ typedef struct _calibration_info
 	float cal_data[8];
 }calibration_info_t;
 
+typedef struct _requset_data{
+	uint8_t type;
+}requset_data_t;
+
+typedef struct _transfer_file_req_t {
+    uint8_t file_type;
+    uint16_t file_count;
+    uint16_t file_index;
+    uint8_t md5[32];
+    uint16_t data_len;
+    char buff[BUFFER_LEN];
+} transfer_file_req_t;
+
 typedef struct _frame_req {
 	frame_header_t header;
     uint8_t func_code;
@@ -103,6 +126,8 @@ typedef struct _frame_req {
     	time_info_t time_info;
     	channel_info_t channel_info;
     	calibration_info_t calibration_info;
+        transfer_file_req_t transfer_file_req;
+    	requset_data_t requset_data;
    } frame_req;
    uint8_t cs;
 }frame_req_t;

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "period_data.h"
-
+#include "fault_location_threads.h"
 #include "frame_encode.h"
 #include "frame_handler.h"
 #include "thread.h"
@@ -31,7 +31,6 @@ void *period_data_serv(void *arg)
     }
 }
 
-#define PERIOD_DATA_PRIORITY  9
 static char period_data_thread_stack[THREAD_STACKSIZE_MAIN];
 kernel_pid_t period_data_serv_init(void)
 {

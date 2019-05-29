@@ -12,8 +12,6 @@ extern "C" {
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
 #define MAX_FPGA_DATA_LEN (4096) //4k*2  4096
 
-#define OVER_CURRENT_PRIO              (6)
-
 typedef struct _over_current_data{
     uint32_t curve_len;
     uint16_t curve_data[MAX_FPGA_DATA_LEN];

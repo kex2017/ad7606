@@ -1,5 +1,5 @@
 #include "over_current.h"
-
+#include "fault_location_threads.h"
 #include <stdint.h>
 #include <string.h>
 #include "env_cfg.h"

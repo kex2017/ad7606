@@ -1,4 +1,5 @@
 #include "data_transfer.h"
+#include "fault_location_threads.h"
 #include "periph/rtt.h"
 #include "timex.h"
 #include "xtimer.h"
@@ -142,10 +143,8 @@ void *data_transfer_service(void *arg)
     }
 }
 
-#define DATA_TRANSFER_PRIO (4)
 kernel_pid_t data_transfer_pid = KERNEL_PID_UNDEF;
-#define DATA_TRANSFER_STACKSIZE          (THREAD_STACKSIZE_MAIN)
-static char data_transfer_stack[DATA_TRANSFER_STACKSIZE*2];
+static char data_transfer_stack[THREAD_STACKSIZE_MAIN*2];
 kernel_pid_t data_transfer_init(void)
 {
     if (data_transfer_pid == KERNEL_PID_UNDEF) {
@@ -199,9 +198,8 @@ void *frame_parser_data(void *arg)
 	return NULL;
 }
 
-#define FRAME_PARSER_PRIO (5)
 kernel_pid_t frame_parser_data_pid = KERNEL_PID_UNDEF;
-static char frame_parser_data_stack[DATA_TRANSFER_STACKSIZE];
+static char frame_parser_data_stack[THREAD_STACKSIZE_MAIN];
 kernel_pid_t frame_parser_data_init(void)
 {
     if (frame_parser_data_pid == KERNEL_PID_UNDEF) {

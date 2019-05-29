@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <string.h>
+#include "fault_location_threads.h"
 
 #include "thread.h"
 #include "periph/rtt.h"
@@ -269,7 +270,6 @@ void set_data_collection_receiver(kernel_pid_t pid)
     self_pid = pid;
 }
 
-#define VC_TEMP_BAT_SAMPLE_SERV_PRIORITY 10
 static char vc_temp_bat_sample_thread_stack[THREAD_STACKSIZE_MAIN ];
 
 kernel_pid_t internal_ad_sample_serv_init(void)

@@ -1,4 +1,5 @@
 #include "heart_beat.h"
+#include "fault_location_threads.h"
 #include "frame_encode.h"
 #include "thread.h"
 #include "periph/rtt.h"
@@ -50,7 +51,6 @@ void *send_heart_beat_handler(void* arg)
  	}
 }
 
-#define SEND_HERRT_BEAT_PRIORITY (8)
 static char send_heart_beat_thread_stack[THREAD_STACKSIZE_MAIN];
 void send_heart_beat_thread_init(void) {
 	DEBUG("Send heart beat thread start....\r\n");

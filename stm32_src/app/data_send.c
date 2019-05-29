@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "period_data.h"
-
+#include "fault_location_threads.h"
 #include "frame_encode.h"
 #include "frame_handler.h"
 #include "thread.h"
@@ -121,7 +121,6 @@ void *data_send_serv(void *arg)
     }
 }
 
-#define DATA_SEND_PRIORITY  10
 static char data_send_thread_stack[THREAD_STACKSIZE_MAIN];
 kernel_pid_t data_send_serv_init(void)
 {

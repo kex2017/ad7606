@@ -1,4 +1,5 @@
 #include "gps_sync.h"
+#include "fault_location_threads.h"
 
 #include <string.h>
 #include "x_delay.h"
@@ -165,8 +166,6 @@ void *gps_handler(void *arg)
 }
 
 kernel_pid_t gps_service_pid;
-
-#define GPS_THREAD_PRIORITY	(8)
 static char gps_service_thread_stack[THREAD_STACKSIZE_MAIN];
 kernel_pid_t gps_service_init(void)
 {

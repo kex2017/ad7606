@@ -110,7 +110,7 @@ void set_channel_info_handler(frame_req_t *frame_req)
 
 	set_chennel_info_by_type(&frame_req->frame_req.channel_info);
 
-	length = frame_set_channel_info_rsp_encode(data, DEVICEOK, rtt_get_counter());
+	length = frame_set_channel_info_rsp_encode(data, DEVICEOK,frame_req->frame_req.channel_info.channel, rtt_get_counter());
 
 	msg_send_pack(data, length);
 }

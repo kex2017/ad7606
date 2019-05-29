@@ -316,13 +316,14 @@ uint16_t frame_heart_beat_encode(uint8_t *data, uint8_t errcode, uint32_t timest
 }
 
 
-uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode, uint32_t timestamp)
+uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode,uint8_t channel, uint32_t timestamp)
 {
     uint16_t index = 0;
 
     index += frame_header_encode(data, cfg_get_device_id(), SET_CHANNEL_INFO_RSP_DATA_LEN);
     index += frame_uint8_encode(data + index, SET_CHANNEL_INFO_RSP);
     index += frame_uint8_encode(data + index, errcode);
+    index += frame_uint8_encode(data + index, channel);
     index += frame_uint32_encode(data + index, timestamp);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 

@@ -186,7 +186,7 @@ static void *over_current_event_service(void *arg)
                 g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
                 LOG_INFO("channel %d length is %d ns cnt is %ld\r\n", channel, length, g_over_current_data.ns_cnt);
 
-                send_over_current_curve(&g_over_current_data, channel);
+                send_over_current_curve(&g_over_current_data, channel+2);
                 memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                 clear_over_current_sample_done_flag(channel);
             }

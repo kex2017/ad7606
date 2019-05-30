@@ -82,7 +82,7 @@ void get_channel_info_handler(void)
 
 void set_chennel_info_by_type(channel_info_t * channel_info)
 {
-	if (channel_info->type == 0) {
+	if (channel_info->channel > 1) {
 		cfg_set_high_device_threshold(channel_info->channel,
 				channel_info->threshold);
 		set_over_current_threshold(channel_info->channel,
@@ -105,10 +105,12 @@ void set_channel_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
-
+	calibration_data_t * calibration_data = NULL;
 	set_chennel_info_by_type(&frame_req->frame_req.channel_info);
 
-	length = frame_set_channel_info_rsp_encode(data, DEVICEOK,frame_req->frame_req.channel_info.channel, rtt_get_counter());
+	calibration_data = cfg_get_calibration_k_b(frame_req->frame_req.channel_info.channel);
+
+	length = frame_set_channel_info_rsp_encode(data, DEVICEOK,frame_req->frame_req.channel_info.channel, calibration_data->k, calibration_data->b);
 
 	msg_send_pack(data, length);
 }
@@ -149,7 +151,6 @@ void set_calibration_info_handler(frame_req_t *frame_req)
 		cfg_set_high_device_k_b(frame_req->frame_req.calibration_info.channel, 	cal_k_b.k, 	cal_k_b.b);
 	}
 
-
 	length = frame_set_calibration_info_encode(data, DEVICEOK,
 			rtt_get_counter());
 
@@ -166,13 +167,11 @@ void get_calibration_info_handler(void)
 	for(int i = 0; i< 2; i++){
 		calibration_data[i] = cfg_get_calibration_k_b(i);
 		calibration_info[i].k = calibration_data[i]->k;
-//		printf("current: %.1f\r\n",calibration_data[i]->k);
 		calibration_info[i].b = calibration_data[i]->b;
 	}
 	for (int i = 0; i < 2; i++) {
 		calibration_data[i+2] = cfg_get_high_calibration_k_b(i);
 		calibration_info[i+2].k = calibration_data[i+2]->k;
-//		printf("high current:%.1f\r\n",calibration_data[i+2]->k);
 		calibration_info[i+2].b = calibration_data[i+2]->b;
 	}
 
@@ -209,16 +208,20 @@ void request_data_hook(kernel_pid_t pid)
 void server_request_data_handler(frame_req_t *frame_req)
 {
 	msg_t msg;
-	switch(frame_req->frame_req.requset_data.type){
-	case 0:
-		break;
-	case 1:
-		msg.type = PERIOD_DATA_TYPE;
-		msg_send(&msg, data_send_pid);
-		break;
-	default:
-		LOG_ERROR("ERROR DATA TYPE, ERROR CODE : %02x", frame_req->frame_req.requset_data.type);
-		break;
+	if(frame_req->frame_req.requset_data.channel > 1)
+	{
+		if (frame_req->frame_req.requset_data.type) {
+		} else {
+			msg.type = PERIOD_DATA_TYPE;
+			msg_send(&msg, data_send_pid);
+		}
+	}else{
+		if(frame_req->frame_req.requset_data.type){
+
+		}
+		else{
+
+		}
 	}
 }
 
@@ -261,6 +264,23 @@ void upload_file_req_handler(frame_req_t *frame_req)
    }
 }
 
+
+void collection_cycle_handler(frame_req_t *frame_req)
+{
+	uint16_t length = 0;
+	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
+
+	if(frame_req->frame_req.collection_cycle.type){
+		LOG_INFO("Receive set collection cycle command");
+		cfg_set_device_data_interval(frame_req->frame_req.collection_cycle.cycle);
+	}else{
+		LOG_INFO("Receive get collection cycle command");
+	}
+	length = frame_collection_cycle_data_encode(data, DEVICEOK,frame_req->frame_req.collection_cycle.type , cfg_get_device_data_interval());
+
+	msg_send_pack(data, length);
+}
+
 void frame_handler(frame_req_t *frame_req)
 {
 	switch (frame_req->func_code) {
@@ -301,7 +321,10 @@ void frame_handler(frame_req_t *frame_req)
 		break;
 	case FRAME_TRANSFER_FILE_REQ:
 	     upload_file_req_handler(frame_req);
-	break;
+	     break;
+	case COLLECTION_CYCLE_REQ:
+		collection_cycle_handler(frame_req);
+		break;
 	default:
 		break;
 	}

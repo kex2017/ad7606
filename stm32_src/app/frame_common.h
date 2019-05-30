@@ -45,7 +45,7 @@
 
 #define SET_CHANNEL_INFO_REQ 0xA7
 #define SET_CHANNEL_INFO_RSP 0xA8
-#define SET_CHANNEL_INFO_RSP_DATA_LEN 0x07
+#define SET_CHANNEL_INFO_RSP_DATA_LEN 0x0B
 
 #define GET_DEV_INFO_REQ 0xA9
 #define GET_DEV_INFO_RSP 0xAA
@@ -67,10 +67,14 @@
 #define FRAME_TRANSFER_FILE_RSP   0X69
 #define FRAME_TRANSFER_FILE_RSP_DATA_LEN   0X05
 
+#define COLLECTION_CYCLE_REQ 0x70
+#define COLLECTION_CYCLE_RSP 0x71
+#define COLLECTION_CYCLE_RSP_DATA_LEN 0x05
+
 #define SERVER_REQUEST_DATA_REQ 0x50
 
 #define POWER_CURRENT_RSP 0x52
-#define POWER_CURRENT_RSP_DATA_LEN 0x0E
+#define POWER_CURRENT_RSP_DATA_LEN 0x07
 
 #define HIGH_POWER_CURRENT_RSP 0x51
 #define HIGH_POWER_CURRENT_RSP_DATA_LEN 0x10
@@ -95,7 +99,6 @@ typedef struct _time_info{
 }time_info_t;
 
 typedef struct _channel_info{
-	uint8_t type;
 	uint8_t channel;
 	uint16_t threshold;
 	uint16_t change_rate;
@@ -110,8 +113,14 @@ typedef struct _calibration_info
 }calibration_info_t;
 
 typedef struct _requset_data{
+	uint8_t channel;
 	uint8_t type;
 }requset_data_t;
+
+typedef struct _collection_cycle{
+	uint8_t type;
+	uint16_t cycle;
+}collection_cycle_t;
 
 typedef struct _transfer_file_req_t {
     uint8_t file_type;
@@ -131,6 +140,7 @@ typedef struct _frame_req {
     	calibration_info_t calibration_info;
         transfer_file_req_t transfer_file_req;
     	requset_data_t requset_data;
+    	collection_cycle_t collection_cycle;
    } frame_req;
    uint8_t cs;
 }frame_req_t;

@@ -57,12 +57,11 @@ return 0;
 
 uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
-	master_frame_req->frame_req.channel_info.type = frame_data[0];
-	master_frame_req->frame_req.channel_info.channel = frame_data[1];
-	master_frame_req->frame_req.channel_info.threshold = frame_uint16_decode(frame_data+2);
-	master_frame_req->frame_req.channel_info.change_rate = frame_uint16_decode(frame_data+4);
+	master_frame_req->frame_req.channel_info.channel = frame_data[0];
+	master_frame_req->frame_req.channel_info.threshold = frame_uint16_decode(frame_data+1);
+	master_frame_req->frame_req.channel_info.change_rate = frame_uint16_decode(frame_data+3);
 
-	return sizeof(uint16_t)+sizeof(uint32_t);
+	return sizeof(uint8_t)+sizeof(uint32_t);
 }
 
 uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
@@ -77,8 +76,16 @@ uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_
 
 uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
-	master_frame_req->frame_req.requset_data.type = frame_data[0];
-	return sizeof(uint8_t);
+	master_frame_req->frame_req.requset_data.channel = frame_data[0];
+	master_frame_req->frame_req.requset_data.type = frame_data[1];
+	return sizeof(uint16_t);
+}
+
+uint16_t frame_collection_cycle_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+	master_frame_req->frame_req.collection_cycle.type= frame_data[0];
+	master_frame_req->frame_req.collection_cycle.cycle = frame_uint16_decode(frame_data+1);
+	return sizeof(uint16_t)+sizeof(uint8_t);
 }
 
 uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
@@ -114,6 +121,9 @@ uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_re
 		break;
 	case SERVER_REQUEST_DATA_REQ:
 		ret = frame_request_data_decode(frame_data + index, master_frame_req);
+		break;
+	case COLLECTION_CYCLE_REQ:
+		ret = frame_collection_cycle_decode(frame_data + index, master_frame_req);
 		break;
 	default:
 		LOG_ERROR("Receive error command type %02x", master_frame_req->func_code);

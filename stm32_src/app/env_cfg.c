@@ -23,7 +23,7 @@ typedef struct _device_cfg {
 	int32_t flag;
 	uint16_t device_id;
 	uint8_t version[32];
-	uint32_t data_interval;
+	uint16_t data_interval;
     double longitude;
     double latitude;
     double height;
@@ -68,12 +68,12 @@ char* cfg_get_device_version(void)
 }
 
 /***data interval******/
-void cfg_set_device_data_interval(uint32_t data_interval)
+void cfg_set_device_data_interval(uint16_t data_interval)
 {
 	g_device_cfg.device_cfg.data_interval = data_interval;
 }
 
-uint32_t cfg_get_device_data_interval(void)
+uint16_t cfg_get_device_data_interval(void)
 {
     return g_device_cfg.device_cfg.data_interval;
 }
@@ -233,7 +233,7 @@ void display_device_cfg(void)
 	printf("Fault Partition device configuration:\r\n");
 	printf("\tdevice_id: %d\r\n", g_device_cfg.device_cfg.device_id);
 	printf("\tversion: %s\r\n", g_device_cfg.device_cfg.version);
-	printf("\tinterval: %lds\r\n", g_device_cfg.device_cfg.data_interval);
+	printf("\tinterval: %ds\r\n", g_device_cfg.device_cfg.data_interval);
 	printf("\tthreshold0: %d\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
 	printf("\tthreshold1: %d\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
 	printf("\thigh_threshold0: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[0]);

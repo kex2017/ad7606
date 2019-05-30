@@ -21,8 +21,8 @@ uint16_t cfg_get_device_id(void);
 void cfg_set_device_version(char *version);
 char* cfg_get_device_version(void);
 
-void cfg_set_device_data_interval(uint32_t data_interval);
-uint32_t cfg_get_device_data_interval(void);
+void cfg_set_device_data_interval(uint16_t data_interval);
+uint16_t cfg_get_device_data_interval(void);
 
 uint16_t cfg_get_device_channel_threshold(uint8_t channel);
 uint16_t cfg_get_device_high_channel_threshold(uint8_t channel);

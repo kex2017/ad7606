@@ -170,22 +170,6 @@ uint16_t frame_reboot_encode(uint8_t *data, uint8_t errorcode,uint32_t timestamp
 }
 
 
-uint16_t frame_get_calibration_info_encode(uint8_t *data, uint8_t errorcode, calibration_info_t *calibration_info)
-{
-	uint16_t index = 0;
-
-	index += frame_header_encode(data + index, cfg_get_device_id(),GET_CALIBRATION_INFO_RSP_DATA_LEN);
-	index += frame_uint8_encode(data + index, GET_CALIBRATION_INFO_RSP);
-	index += frame_uint8_encode(data + index, errorcode);
-	for (int i = 0; i < 4; i++) {
-		index += frame_float_encode(data + index, calibration_info[i].k);
-		index += frame_float_encode(data + index, calibration_info[i].b);
-	}
-	index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
-
-	return index;
-}
-
 uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t send_data_type, uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp)
 {
 	uint16_t index = 0;

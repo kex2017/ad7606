@@ -64,16 +64,6 @@ void set_over_current_changerate(uint8_t channel, uint16_t changerate)
     cfg_set_device_changerate(channel+2, changerate);
 }
 
-void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b)
-{
-    g_over_current_info[channel].cal_k_b = cal_k_b;
-}
-
-cal_k_b_t get_over_current_cal_k_b(uint8_t channel)
-{
-    return g_over_current_info[channel].cal_k_b;
-}
-
 over_current_info_t *get_over_current_info(uint8_t channel)
 {
     return &g_over_current_info[channel];

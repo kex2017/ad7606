@@ -21,12 +21,10 @@ void send_high_current_cycle_data(uint8_t send_type)
     uint8_t data[256] = { 0 };
     uint16_t len = 0;
 
-    cal_k_b_t* k_b[MAX_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
     uint32_t hf_cur[MAX_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
     for (uint8_t channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
-        k_b[channel] = (cal_k_b_t*)cfg_get_high_calibration_k_b(channel);
-        hf_cur[channel] = k_b[channel]->k * get_over_current_max(channel) + k_b[channel]->b;
+        hf_cur[channel] = get_over_current_max(channel);
     }
     len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);

@@ -51,10 +51,6 @@ int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold, uint16_t ch
     return 0;
 }
 
-void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b)
-{
-    pf_data.pf_threshold_chanagerate[channel].pf_cal_k_b = pf_cal_k_b;
-}
 uint16_t pf_get_threshold(uint8_t channel)
 {
     return pf_data.pf_threshold_chanagerate[channel].pf_threshold;
@@ -205,7 +201,6 @@ void *internal_ad_sample_serv(void *arg)
     (void)arg;
     msg_t msg;
     RAW_DATA *raw_data;
-    pf_cal_k_b_t *pf_cal_k_b[MAX_CHANNEL];
     init_task();
     init_msg_send_is_done();
     set_default_pf_threshold_rate();
@@ -220,10 +215,6 @@ void *internal_ad_sample_serv(void *arg)
         msg_receive(&msg);
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
-        for(int i=0; i < MAX_CHANNEL; i++)
-        {
-            pf_cal_k_b[i]=(pf_cal_k_b_t*)cfg_get_calibration_k_b(i);
-        }
         if (detect_mutation(rms_data,raw_data)) //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
@@ -231,8 +222,8 @@ void *internal_ad_sample_serv(void *arg)
                 printf("mutation data not send done\r\n");
                 continue;
             }
-            mutation_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
-            mutation_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
+            mutation_data.rms_data[0] = rms_data[0] ;
+            mutation_data.rms_data[1] = rms_data[1] ;
             for (int i = 0; i < SAMPLE_COUNT; i++)
             {
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
@@ -255,8 +246,8 @@ void *internal_ad_sample_serv(void *arg)
                     general_call_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                     general_call_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
-                general_call_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
-                general_call_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
+                general_call_data.rms_data[0] = rms_data[0] ;
+                general_call_data.rms_data[1] = rms_data[1] ;
 
                 send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
                 send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
@@ -272,8 +263,8 @@ void *internal_ad_sample_serv(void *arg)
                     periodic_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                     periodic_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
-                periodic_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
-                periodic_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
+                periodic_data.rms_data[0] = rms_data[0] ;
+                periodic_data.rms_data[1] = rms_data[1] ;
 
                 send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
                 send_periodic_msg.content.ptr = (void *)(&periodic_data);

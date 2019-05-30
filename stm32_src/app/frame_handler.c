@@ -129,62 +129,10 @@ void get_dev_info_handler(void)
 	msg_send_pack(data, length);
 }
 
-void set_calibration_info_handler(frame_req_t *frame_req)
-{
-	uint16_t length = 0;
-	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	cal_k_b_t cal_k_b;
-	pf_cal_k_b_t pf_k_b;
-
-	if (frame_req->frame_req.calibration_info.type)
-	{
-		pf_k_b.k = frame_req->frame_req.calibration_info.k;
-		pf_k_b.b = frame_req->frame_req.calibration_info.b;
-		pf_set_over_current_cal_k_b(frame_req->frame_req.calibration_info.channel, pf_k_b);
-		cfg_set_device_k_b(frame_req->frame_req.calibration_info.channel, pf_k_b.k , pf_k_b.b);
-
-	}else
-	{
-		cal_k_b.k = frame_req->frame_req.calibration_info.k;
-		cal_k_b.b = frame_req->frame_req.calibration_info.b;
-		set_over_current_cal_k_b(frame_req->frame_req.calibration_info.channel, cal_k_b);
-		cfg_set_high_device_k_b(frame_req->frame_req.calibration_info.channel, 	cal_k_b.k, 	cal_k_b.b);
-	}
-
-	length = frame_set_calibration_info_encode(data, DEVICEOK,
-			rtt_get_counter());
-
-	msg_send_pack(data, length);
-}
-
-void get_calibration_info_handler(void)
-{
-	uint16_t length = 0;
-	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	calibration_info_t calibration_info[4];
-	calibration_data_t *calibration_data[4];
-
-	for(int i = 0; i< 2; i++){
-		calibration_data[i] = cfg_get_calibration_k_b(i);
-		calibration_info[i].k = calibration_data[i]->k;
-		calibration_info[i].b = calibration_data[i]->b;
-	}
-	for (int i = 0; i < 2; i++) {
-		calibration_data[i+2] = cfg_get_high_calibration_k_b(i);
-		calibration_info[i+2].k = calibration_data[i+2]->k;
-		calibration_info[i+2].b = calibration_data[i+2]->b;
-	}
-
-	length = frame_get_calibration_info_encode(data, DEVICEOK,calibration_info);
-
-	msg_send_pack(data, length);
-}
-
 void do_send_dev_info_msg(void)
 {
     get_dev_info_handler();
     delay_ms(200);
-    get_calibration_info_handler();
 }
 
 void reboot_handler(void)
@@ -305,14 +253,6 @@ void frame_handler(frame_req_t *frame_req)
 		LOG_INFO("Receive get dev info command");
 		get_dev_info_handler();
 		break;
-    case SET_CALIBRATION_INFO_REQ:
-    	LOG_INFO("Receive set calibration info command");
-    	set_calibration_info_handler(frame_req);
-    	break;
-    case GET_CALIBRATION_INFO_REQ:
-    	LOG_INFO("Receive get calibration info command");
-    	get_calibration_info_handler();
-    	break;
     case REBOOT_ARM_REQ:
     	LOG_INFO("Receive reboot command");
     	reboot_handler();

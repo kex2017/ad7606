@@ -25,10 +25,6 @@ typedef enum
 #define TEMP_ADC2_CHAN_CNT 2
 #define TEMP_BAT_ADC3_CHAN_CNT 2
 
-typedef struct pf_over_current_cal_k_b{
-    float k;
-    float b;
-}pf_cal_k_b_t;
 
 typedef enum{
    CALL_RMS = 1,
@@ -38,7 +34,6 @@ typedef struct _threshold_chanagerate
 {
     uint16_t pf_threshold;
     uint16_t pf_chanagerate;
-    pf_cal_k_b_t pf_cal_k_b;
 } PF_THRESHOLD_CHANAGERATE;
 
 typedef struct _pf_data_t
@@ -75,7 +70,6 @@ kernel_pid_t internal_ad_sample_serv_init(void);
 
 uint16_t get_line_temp(line_temperature_t line);
 void do_receive_pid_hook(kernel_pid_t pid);
-void pf_set_over_current_cal_k_b(uint8_t channel, pf_cal_k_b_t pf_cal_k_b);
 void pf_data_recv_hook(kernel_pid_t pid);
 void pray_periodic_task(void);
 uint16_t pf_get_threshold(uint8_t channel);

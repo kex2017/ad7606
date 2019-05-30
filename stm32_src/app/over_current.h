@@ -18,15 +18,9 @@ typedef struct _over_current_data{
     uint32_t ns_cnt;
 }over_current_data_t;
 
-typedef struct _over_current_cal_k_b{
-    float k;
-    float b;
-}cal_k_b_t;
-
 typedef struct _over_current_info {
     uint16_t threshold;
     uint16_t change_rate;
-    cal_k_b_t cal_k_b;
 }over_current_info_t;
 
 kernel_pid_t over_current_service_init(void);
@@ -35,9 +29,6 @@ over_current_info_t *get_over_current_info(uint8_t channel);
 
 void set_over_current_threshold(uint8_t channel, uint16_t threshold);
 void set_over_current_changerate(uint8_t channel, uint16_t changerate);
-
-cal_k_b_t get_over_current_cal_k_b(uint8_t channel);
-void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b);
 
 void trigger_sample_over_current_by_hand(uint8_t channel);
 

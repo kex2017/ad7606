@@ -50,9 +50,9 @@ uint16_t frame_time_ctrl_decode(uint8_t* frame_data, frame_req_t *master_frame_r
 	return sizeof(uint8_t)+sizeof(uint32_t);
 }
 
-uint16_t  frame_on_need_decode(void)
+uint16_t frame_on_need_decode(void)
 {
-return 0;
+    return 0;
 }
 
 uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
@@ -62,16 +62,6 @@ uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_
 	master_frame_req->frame_req.channel_info.change_rate = frame_uint16_decode(frame_data+3);
 
 	return sizeof(uint8_t)+sizeof(uint32_t);
-}
-
-uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
-{
-		master_frame_req->frame_req.calibration_info.type = frame_data[0];
-		master_frame_req->frame_req.calibration_info.channel = frame_data[1];
-		master_frame_req->frame_req.calibration_info.k = (float)frame_uint32_decode(frame_data+2);
-		master_frame_req->frame_req.calibration_info.b = (float)frame_uint32_decode(frame_data+6);
-
-		return sizeof(uint32_t)*2 + sizeof(uint16_t );
 }
 
 uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
@@ -108,12 +98,6 @@ uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_re
 		ret = frame_set_channel_info_decode(frame_data + index, master_frame_req);
 		break;
 	case GET_DEV_INFO_REQ:
-		ret = frame_on_need_decode();
-		break;
-	case SET_CALIBRATION_INFO_REQ:
-		ret = frame_calibration_info_decode(frame_data + index, master_frame_req);
-		break;
-	case GET_CALIBRATION_INFO_REQ:
 		ret = frame_on_need_decode();
 		break;
 	case REBOOT_ARM_REQ:

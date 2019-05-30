@@ -98,14 +98,6 @@ typedef struct _channel_info{
 	uint16_t change_rate;
 }channel_info_t;
 
-typedef struct _calibration_info
-{
-	uint8_t type;
-	uint8_t channel;
-	float k;
-	float b;
-}calibration_info_t;
-
 typedef struct _requset_data{
 	uint8_t channel;
 	uint8_t type;
@@ -131,7 +123,6 @@ typedef struct _frame_req {
    union {
     	time_info_t time_info;
     	channel_info_t channel_info;
-    	calibration_info_t calibration_info;
         transfer_file_req_t transfer_file_req;
     	requset_data_t requset_data;
     	collection_cycle_t collection_cycle;

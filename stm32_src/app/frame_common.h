@@ -103,7 +103,10 @@ typedef struct _channel_info{
 
 typedef struct _calibration_info
 {
-	float cal_data[8];
+	uint8_t type;
+	uint8_t channel;
+	float k;
+	float b;
 }calibration_info_t;
 
 typedef struct _requset_data{

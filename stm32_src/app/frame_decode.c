@@ -67,11 +67,12 @@ uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_
 
 uint16_t frame_calibration_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
-	for(int i = 0; i< 8; i++)
-	{
-		master_frame_req->frame_req.calibration_info.cal_data[i] = frame_uint32_decode(frame_data+i*4);
-	}
-	return sizeof(uint32_t)*8;
+		master_frame_req->frame_req.calibration_info.type = frame_data[0];
+		master_frame_req->frame_req.calibration_info.channel = frame_data[1];
+		master_frame_req->frame_req.calibration_info.k = (float)frame_uint32_decode(frame_data+2);
+		master_frame_req->frame_req.calibration_info.b = (float)frame_uint32_decode(frame_data+6);
+
+		return sizeof(uint32_t)*2 + sizeof(uint16_t );
 }
 
 uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)

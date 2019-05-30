@@ -51,7 +51,6 @@ void time_ctrl_handler(frame_req_t *frame_req)
 	msg_send_pack(data, length);
 }
 
-
 void get_running_state_handler(void)
 {
 	uint16_t length = 0;
@@ -80,7 +79,6 @@ void get_channel_info_handler(void)
 
 	msg_send_pack(data, length);
 }
-
 
 void set_chennel_info_by_type(channel_info_t * channel_info)
 {
@@ -115,7 +113,6 @@ void set_channel_info_handler(frame_req_t *frame_req)
 	msg_send_pack(data, length);
 }
 
-
 void get_dev_info_handler(void)
 {
 	uint16_t length = 0;
@@ -134,26 +131,24 @@ void set_calibration_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	float k, b;
-	cal_k_b_t cal_k_b[2];
-	pf_cal_k_b_t pf_k_b[2];
+	cal_k_b_t cal_k_b;
+	pf_cal_k_b_t pf_k_b;
 
-	for (int i = 0; i < 2; i++) {
-		pf_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i * 2];
-		pf_k_b[i].b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 1];
-		pf_set_over_current_cal_k_b(i, pf_k_b[i]);
-		k = frame_req->frame_req.calibration_info.cal_data[i * 2];
-		b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 1];
-		cfg_set_device_k_b(i, k, b);
+	if (frame_req->frame_req.calibration_info.type)
+	{
+		pf_k_b.k = frame_req->frame_req.calibration_info.k;
+		pf_k_b.b = frame_req->frame_req.calibration_info.b;
+		pf_set_over_current_cal_k_b(frame_req->frame_req.calibration_info.channel, pf_k_b);
+		cfg_set_device_k_b(frame_req->frame_req.calibration_info.channel, pf_k_b.k , pf_k_b.b);
+
+	}else
+	{
+		cal_k_b.k = frame_req->frame_req.calibration_info.k;
+		cal_k_b.b = frame_req->frame_req.calibration_info.b;
+		set_over_current_cal_k_b(frame_req->frame_req.calibration_info.channel, cal_k_b);
+		cfg_set_high_device_k_b(frame_req->frame_req.calibration_info.channel, 	cal_k_b.k, 	cal_k_b.b);
 	}
-	for (int i = 0; i < 2; i++) {
-		cal_k_b[i].k = frame_req->frame_req.calibration_info.cal_data[i * 2 + 4];
-		cal_k_b[i].b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 5];
-		set_over_current_cal_k_b(i, cal_k_b[i]);
-		k = frame_req->frame_req.calibration_info.cal_data[i * 2 + 4];
-		b = frame_req->frame_req.calibration_info.cal_data[i * 2 + 5];
-		cfg_set_high_device_k_b(i, k, b);
-	}
+
 
 	length = frame_set_calibration_info_encode(data, DEVICEOK,
 			rtt_get_counter());
@@ -165,23 +160,23 @@ void get_calibration_info_handler(void)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
-	calibration_info_t calibration_info;
+	calibration_info_t calibration_info[4];
 	calibration_data_t *calibration_data[4];
 
 	for(int i = 0; i< 2; i++){
 		calibration_data[i] = cfg_get_calibration_k_b(i);
-		calibration_info.cal_data[i*2] = calibration_data[i]->k;
+		calibration_info[i].k = calibration_data[i]->k;
 //		printf("current: %.1f\r\n",calibration_data[i]->k);
-		calibration_info.cal_data[i*2+1] = calibration_data[i]->b;
+		calibration_info[i].b = calibration_data[i]->b;
 	}
 	for (int i = 0; i < 2; i++) {
 		calibration_data[i+2] = cfg_get_high_calibration_k_b(i);
-		calibration_info.cal_data[i*2+4] = calibration_data[i+2]->k;
+		calibration_info[i+2].k = calibration_data[i+2]->k;
 //		printf("high current:%.1f\r\n",calibration_data[i+2]->k);
-		calibration_info.cal_data[i*2+5] = calibration_data[i+2]->b;
+		calibration_info[i+2].b = calibration_data[i+2]->b;
 	}
 
-	length = frame_get_calibration_info_encode(data, DEVICEOK,&calibration_info);
+	length = frame_get_calibration_info_encode(data, DEVICEOK,calibration_info);
 
 	msg_send_pack(data, length);
 }
@@ -265,7 +260,6 @@ void upload_file_req_handler(frame_req_t *frame_req)
       process_upgrade_programe_req(frame_req->frame_req.transfer_file_req.md5, file_type);
    }
 }
-
 
 void frame_handler(frame_req_t *frame_req)
 {

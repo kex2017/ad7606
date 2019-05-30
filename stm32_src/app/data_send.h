@@ -24,8 +24,11 @@
 #define CHANNEL_1 0x01
 #define CHANNEL_2 0x02
 
+uint8_t get_send_type(void);
+
+void set_server_call_flag(uint8_t flag);
 
 kernel_pid_t data_send_serv_init(void);
-void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel);
+void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel, uint8_t send_type);
 
 #endif /* APP_DATA_SEND_H_ */

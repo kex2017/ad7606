@@ -125,6 +125,7 @@ void clear_over_current_sample_done_flag(uint8_t channel)
 void trigger_sample_over_current_by_hand(uint8_t channel)
 {
     daq_spi_trigger_sample(channel);
+    set_server_call_flag(1);
 }
 
 void set_default_threshold_rate(void)
@@ -162,12 +163,13 @@ static void *over_current_event_service(void *arg)
 //    msg_t recv_msg;
     uint8_t channel = 0;
     uint32_t length = 0;
+    uint8_t send_type = 0;
 
     init_over_current_irq();
     set_default_threshold_rate();
 
     while (1) {
-//        msg_receive(&recv_msg);
+        send_type = get_send_type();
         for (channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             if (0 < check_over_current_sample_done(channel)) {
                 if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
@@ -186,7 +188,7 @@ static void *over_current_event_service(void *arg)
                 g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
                 LOG_INFO("channel %d length is %d ns cnt is %ld\r\n", channel, length, g_over_current_data.ns_cnt);
 
-                send_over_current_curve(&g_over_current_data, channel+2);
+                send_over_current_curve(&g_over_current_data, channel+2, send_type);
                 memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                 clear_over_current_sample_done_flag(channel);
             }

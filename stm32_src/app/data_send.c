@@ -16,7 +16,7 @@
 
 #define HF_CHAN_0 2
 #define HF_CHAN_1 3
-void send_high_current_cycle_data(void)
+void send_high_current_cycle_data(uint8_t send_type)
 {
     uint8_t data[256] = { 0 };
     uint16_t len = 0;
@@ -28,7 +28,7 @@ void send_high_current_cycle_data(void)
         k_b[channel] = (cal_k_b_t*)cfg_get_high_calibration_k_b(channel);
         hf_cur[channel] = k_b[channel]->k * get_over_current_max(channel) + k_b[channel]->b;
     }
-    len = current_cycle_data_encode(data, DEVICEOK, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
+    len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);
 
 //    printf("send high current cycle data\r\n");
@@ -38,7 +38,31 @@ void send_high_current_cycle_data(void)
 //    printf("\r\n");
 }
 
-void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel)
+uint8_t server_call_data_flag = 0;
+
+void set_server_call_flag(uint8_t flag)
+{
+    server_call_data_flag = flag;
+}
+
+uint8_t get_server_call_flag(void)
+{
+    return server_call_data_flag;
+}
+
+uint8_t get_send_type(void)
+{
+    if (get_server_call_flag()) {
+          set_server_call_flag(0);
+          return 1;//召唤模式
+      }
+      else {
+          return 0;//普通模式
+      }
+}
+
+
+void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel, uint8_t send_type)
 {
     uint16_t len = 0;
     uint8_t data[MAX_FRAME_LEN] = {0};
@@ -54,12 +78,12 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
             memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, left_data_len);
-            len = current_mutation_data_encode(data, DEVICEOK, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, left_data_len);
         }
         else {
             memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
-            len = current_mutation_data_encode(data, DEVICEOK, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, PACKET_DATA_LEN);
         }
         msg_send_pack(data, len);
@@ -74,10 +98,10 @@ void send_mutation_data(MUTATION_DATA* md)
 
    LOG_INFO("start send mutatuin time");
 
-   length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, 0, rtt_get_counter(),CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
    msg_send_pack(data,length);
 
-   length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, 0, rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
    msg_send_pack(data,length);
    LOG_INFO("send mutatuin data done");
 }
@@ -94,15 +118,15 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
 
    if(call_type == CALL_RMS)
    {
-        length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
+        length = current_cycle_data_encode(data,DEVICEOK, CALL_RMS, 2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
         msg_send_pack(data,length);
    }
    else if(call_type == CALL_WAVEFORM)
    {
-        length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, 1, rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
         msg_send_pack(data,length);
 
-        length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, 1, rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
         msg_send_pack(data,length);
    }
    
@@ -120,7 +144,7 @@ void send_periodic_data(PERIODIC_DATA* pd)
 
    LOG_INFO("start send periodic time");
 
-   length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)pd->rms_data[0],1,(uint32_t)pd->rms_data[1],rtt_get_counter());
+   length = current_cycle_data_encode(data,DEVICEOK, 0, 2, 0,(uint32_t)pd->rms_data[0],1,(uint32_t)pd->rms_data[1],rtt_get_counter());
    msg_send_pack(data,length);
 
    LOG_INFO("send periodic data done");
@@ -129,9 +153,9 @@ void send_periodic_data(PERIODIC_DATA* pd)
 
 static msg_t send_task_rcv_queue[8];
 
-static void upload_period_data(void)
+static void upload_period_data(uint8_t send_type)
 {
-    send_high_current_cycle_data();
+    send_high_current_cycle_data(send_type);
 }
 
 void *data_send_serv(void *arg)
@@ -146,7 +170,7 @@ void *data_send_serv(void *arg)
         msg_receive(&msg);
         switch (msg.type) {
         case PERIOD_DATA_TYPE:
-            upload_period_data();
+            upload_period_data(msg.content.value);
             break;
         case PF_PERIOD_DATA_TYPE:
             pd = (PERIODIC_DATA*)(msg.content.ptr);

@@ -214,6 +214,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 			trigger_sample_over_current_by_hand(frame_req->frame_req.requset_data.channel);
 		} else {
 			msg.type = PERIOD_DATA_TYPE;
+			msg.content.value = 1;
 			msg_send(&msg, data_send_pid);
 		}
 	}else{

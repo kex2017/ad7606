@@ -186,12 +186,13 @@ uint16_t frame_get_calibration_info_encode(uint8_t *data, uint8_t errorcode, cal
 	return index;
 }
 
-uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode,uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp)
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t send_data_type, uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp)
 {
 	uint16_t index = 0;
 	index += frame_header_encode(data + index, cfg_get_device_id(), (POWER_CURRENT_RSP_DATA_LEN+ channel_count * 5));
 	index += frame_uint8_encode(data + index, POWER_CURRENT_RSP);
 	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint8_encode(data + index, send_data_type);
 	index += frame_uint32_encode(data + index, timestamp);
 	index += frame_uint8_encode(data+index , channel_count);
 	index += frame_uint8_encode(data+index , channel_1);
@@ -204,13 +205,14 @@ uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode,uint8_t chan
 }
 
 
-uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
+uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_t send_type, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
 {
 	uint16_t index = 0;
 
 	index += frame_header_encode(data + index, cfg_get_device_id(), CURRENT_WAVE_FORM_RSP_DATA_LEN + len);
 	index += frame_uint8_encode(data + index, CURRENT_WAVE_FORM_RSP);
 	index += frame_uint8_encode(data + index, errorcode);
+	index += frame_uint8_encode(data + index, send_type);
 	index += frame_uint32_encode(data + index, timestamp);
 	index += frame_uint8_encode(data + index, channel);
 	index += frame_uint16_encode(data + index, pkg_sum);

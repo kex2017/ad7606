@@ -16,10 +16,9 @@ uint16_t dev_info_encode(uint8_t *data, uint8_t errorcode, uint8_t * version, ui
 uint16_t frame_collection_cycle_data_encode(uint8_t *data, uint8_t errcode, uint8_t type, uint16_t cycle);
 
 /*周期数据编码*/
-uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode,uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp);
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t send_data_type,  uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp);
 
 /*突变数据编码*/
-uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len );
-
+uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_t send_type, uint32_t timestamp, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len );
 
 #endif /* FRAME_ENCODE_H_ */

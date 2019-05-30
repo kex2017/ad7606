@@ -34,13 +34,13 @@ int main(void)
 	load_device_cfg();
 
 	gps_service_init();
-	// data_transfer_init();
+	data_transfer_init();
 	frame_parser_data_init();
 
 	data_send_serv_init();
 	over_current_service_init();
 
-	period_data_serv_init();
+	// period_data_serv_init();
 	send_heart_beat_thread_init();
     internal_ad_sample_serv_init();
 

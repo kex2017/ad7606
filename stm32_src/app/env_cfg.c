@@ -71,6 +71,7 @@ char* cfg_get_device_version(void)
 void cfg_set_device_data_interval(uint16_t data_interval)
 {
 	g_device_cfg.device_cfg.data_interval = data_interval;
+    update_device_cfg();
 }
 
 uint16_t cfg_get_device_data_interval(void)
@@ -111,6 +112,7 @@ calibration_data_t * cfg_get_high_calibration_k_b(uint8_t channel)
 void cfg_set_device_longitude(double longitude)
 {
     g_device_cfg.device_cfg.longitude = longitude;
+    update_device_cfg();
 }
 
 double cfg_get_device_longitude(void)
@@ -121,6 +123,7 @@ double cfg_get_device_longitude(void)
 void cfg_set_device_latitude(double latitude)
 {
     g_device_cfg.device_cfg.latitude = latitude;
+    update_device_cfg();
 }
 
 double cfg_get_device_latitude(void)
@@ -136,6 +139,7 @@ void cfg_set_device_height(double height)
 double cfg_get_device_height(void)
 {
     return g_device_cfg.device_cfg.height;
+    update_device_cfg();
 }
 
 void cfg_set_device_threshold(uint8_t channel, uint16_t threshold)

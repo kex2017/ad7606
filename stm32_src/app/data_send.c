@@ -14,6 +14,8 @@
 #include "data_send.h"
 #include "internal_ad_sample.h"
 
+#define HF_CHAN_0 2
+#define HF_CHAN_1 3
 void send_high_current_cycle_data(void)
 {
     uint8_t data[256] = { 0 };
@@ -26,9 +28,9 @@ void send_high_current_cycle_data(void)
         k_b[channel] = (cal_k_b_t*)cfg_get_high_calibration_k_b(channel);
         hf_cur[channel] = k_b[channel]->k * get_over_current_max(channel) + k_b[channel]->b;
     }
-    (void)hf_cur;
-//    len = high_current_cycle_data_encode(data, DEVICEOK, hf_cur[0], hf_cur[1], rtt_get_counter());
+    len = current_cycle_data_encode(data, DEVICEOK, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);
+
 //    printf("send high current cycle data\r\n");
 //    for(uint16_t i = 0; i < len; i++){
 //        printf("%02x ", data[i]);

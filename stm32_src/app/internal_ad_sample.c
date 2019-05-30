@@ -180,10 +180,21 @@ void clear_general_call_task(void)
    general_call_task = 0;
 }
 
-void pray_general_call_task(void)
+void pf_general_call_rms(void)
 {
-   general_call_task = 1;
+   general_call_task = CALL_RMS;
 }
+
+void pf_general_call_waveform(void)
+{
+   general_call_task = CALL_WAVEFORM;
+}
+
+int get_pf_general_type(void)
+{
+    return general_call_task;
+}
+
 void init_task(void)
 {
     clear_periodic_task();
@@ -213,7 +224,7 @@ void *internal_ad_sample_serv(void *arg)
         {
             pf_cal_k_b[i]=(pf_cal_k_b_t*)cfg_get_calibration_k_b(i);
         }
-        if (0) //detect_mutation(rms_data,raw_data)
+        if (detect_mutation(rms_data,raw_data)) //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
             {

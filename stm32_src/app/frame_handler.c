@@ -218,10 +218,10 @@ void server_request_data_handler(frame_req_t *frame_req)
 		}
 	}else{
 		if(frame_req->frame_req.requset_data.type){
-
+			pf_general_call_waveform();
 		}
 		else{
-//			pray_general_call_task();
+			pf_general_call_rms();
 		}
 	}
 }

@@ -30,6 +30,10 @@ typedef struct pf_over_current_cal_k_b{
     float b;
 }pf_cal_k_b_t;
 
+typedef enum{
+   CALL_RMS = 1,
+   CALL_WAVEFORM,
+}CALL_TYPE;
 typedef struct _threshold_chanagerate
 {
     uint16_t pf_threshold;
@@ -79,5 +83,8 @@ uint16_t pf_get_changerate(uint8_t channel);
 uint16_t get_bat_vol(void);
 int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate);
 void send_mutation_msg_is_done(void);
-void pray_general_call_task(void);
+void pf_general_call_rms(void);
+void pf_general_call_waveform(void);
+int get_pf_general_type(void);
+
 #endif /* SRC_VC_TEMP_BAT_VOL_SAMPLE_H_ */

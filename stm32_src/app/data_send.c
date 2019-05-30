@@ -72,10 +72,10 @@ void send_mutation_data(MUTATION_DATA* md)
 
    LOG_INFO("start send mutatuin time");
 
-   length = current_mutation_data_encode(data,0x01,rtt_get_counter(),CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
    msg_send_pack(data,length);
 
-   length = current_mutation_data_encode(data,0x01,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
    msg_send_pack(data,length);
    LOG_INFO("send mutatuin data done");
 }
@@ -85,10 +85,27 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
    uint8_t data[1024] = {0};
    uint16_t length = 0;
 
+   int call_type = 0;
+
+   call_type = get_pf_general_type();
    LOG_INFO("start send general call data time");
 
-   length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
-   msg_send_pack(data,length);
+   if(call_type == CALL_RMS)
+   {
+        length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
+        msg_send_pack(data,length);
+   }
+   else if(call_type == CALL_WAVEFORM)
+   {
+        length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
+        msg_send_pack(data,length);
+
+        length = current_mutation_data_encode(data,DEVICEOK,rtt_get_counter(),CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
+        msg_send_pack(data,length);
+   }
+   
+
+
 
    LOG_INFO("send general call data done");
 

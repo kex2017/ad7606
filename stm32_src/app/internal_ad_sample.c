@@ -199,8 +199,6 @@ void *internal_ad_sample_serv(void *arg)
     (void)arg;
     msg_t msg;
     RAW_DATA *raw_data;
-    int periodic_task_i = 0;
-    int general_call_task_i = 0;
     init_task();
 
     init_msg_send_is_done();
@@ -219,14 +217,10 @@ void *internal_ad_sample_serv(void *arg)
             if (!mutation_msg_is_done)
             {
                 printf("mutation data not send done\r\n");
-                mutation_data.rms_data[0] = rms_data[0];
-                mutation_data.rms_data[1] = rms_data[1];
-                memcpy((void *)(&(mutation_data.wd.data[CHANNEL_COUNT * SAMPLE_COUNT])), (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
                 continue;
             }
             mutation_data.rms_data[0] = rms_data[0];
             mutation_data.rms_data[1] = rms_data[1];
-            memcpy((void *)(&(mutation_data.wd.data[CHANNEL_COUNT * SAMPLE_COUNT])), (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
             for (int i = 0; i < SAMPLE_COUNT; i++)
             {
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
@@ -236,57 +230,43 @@ void *internal_ad_sample_serv(void *arg)
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
             msg_send(&(send_mutation_msg), data_send_pf_pid);
 
-            periodic_task_i = 0;
             do_periodic_task = 0;
-            general_call_task_i = 0;
             general_call_task = 0;
         }
         else
         {
             if (general_call_task)
             {
-                if (general_call_task_i >= SAMPLE_COUNT)
-                {
-
-                    general_call_task_i = 0;
-                    send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
-                    send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
-                    msg_send(&send_general_call_msg, data_send_pf_pid);
-                    do_periodic_task = 0;
-                    continue;
-                }
 
                 for (int i = 0; i < SAMPLE_COUNT; i++)
                 {
-                    general_call_data.channel1[general_call_task_i] = raw_data->data[CHANNEL_COUNT * i + 0];
-                    general_call_data.channel2[general_call_task_i] = raw_data->data[CHANNEL_COUNT * i + 1];
-                    general_call_task_i++;
+                    general_call_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
+                    general_call_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
                 general_call_data.rms_data[0] = rms_data[0];
                 general_call_data.rms_data[1] = rms_data[1];
+
+                send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
+                send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
+                msg_send(&send_general_call_msg, data_send_pf_pid);
+
+                general_call_task = 0;
                 continue;
             }
             if (do_periodic_task)
             {
-                if (periodic_task_i >= SAMPLE_COUNT)
-                {
-
-                    periodic_task_i = 0;
-                    send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
-                    send_periodic_msg.content.ptr = (void *)(&periodic_data);
-                    msg_send(&send_periodic_msg, data_send_pf_pid);
-                    do_periodic_task = 0;
-                    continue;
-                }
-
                 for (int i = 0; i < SAMPLE_COUNT; i++)
                 {
-                    periodic_data.channel1[periodic_task_i] = raw_data->data[CHANNEL_COUNT * i + 0];
-                    periodic_data.channel2[periodic_task_i] = raw_data->data[CHANNEL_COUNT * i + 1];
-                    periodic_task_i++;
+                    periodic_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
+                    periodic_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
                 periodic_data.rms_data[0] = rms_data[0];
                 periodic_data.rms_data[1] = rms_data[1];
+
+                send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
+                send_periodic_msg.content.ptr = (void *)(&periodic_data);
+                msg_send(&send_periodic_msg, data_send_pf_pid);
+                do_periodic_task = 0;
             }
         }
     }

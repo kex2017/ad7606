@@ -47,15 +47,8 @@ typedef struct _raw_data_t
     uint16_t data[CHANNEL_COUNT * SAMPLE_COUNT];
 } RAW_DATA;
 
-typedef struct _wave_data
-{
-    uint16_t data[CHANNEL_COUNT * SAMPLE_COUNT];
-    uint32_t time;
-} WAVE_DATA;
-
 typedef struct _mutation_data
 {
-    WAVE_DATA wd;
     uint16_t channel1[SAMPLE_COUNT];
     uint16_t channel2[SAMPLE_COUNT];
     float rms_data[PF_CHANNEL_COUNT];

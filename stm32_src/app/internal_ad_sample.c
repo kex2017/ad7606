@@ -20,6 +20,7 @@
 #include "x_delay.h"
 #include "env_cfg.h"
 #include "data_send.h"
+#include "type_alias.h"
 
 __IO uint16_t sample_buf[CHANNEL_COUNT * SAMPLE_COUNT];
 
@@ -62,20 +63,14 @@ uint16_t pf_get_changerate(uint8_t channel)
 {
     return pf_data.pf_threshold_chanagerate[channel].pf_chanagerate;
 }
-pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel)
-{
-    return pf_data.pf_threshold_chanagerate[channel].pf_cal_k_b;
-}
+
 void set_default_pf_threshold_rate(void)
 {
-    uint16_t default_threshold = 2047;
-    uint16_t default_changerate = 4095;
-
     for (int i = 0; i < CHANNEL_COUNT; i++)
     {
-        pf_set_threshold_changerate(i, default_threshold, default_changerate);
-        LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, default_threshold,
-                 default_changerate);
+        pf_set_threshold_changerate(i, cfg_get_device_channel_threshold(i), cfg_get_device_channel_changerate(i));
+        LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, cfg_get_device_channel_threshold(i),
+                 cfg_get_device_channel_changerate(i));
     }
 }
 
@@ -113,7 +108,7 @@ int detect_mutation(float *rms_data, RAW_DATA *raw_data)
         {
             return 1;
         }
-        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >= pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
+        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >=  pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
         {
             return 1;
         }
@@ -199,19 +194,25 @@ void *internal_ad_sample_serv(void *arg)
     (void)arg;
     msg_t msg;
     RAW_DATA *raw_data;
+    pf_cal_k_b_t *pf_cal_k_b[MAX_CHANNEL];
     init_task();
-
     init_msg_send_is_done();
     set_default_pf_threshold_rate();
     msg_init_queue(rcv_queue, 8);
     pf_sample_init();
     msg_receive(&msg);
     raw_data = (RAW_DATA *)(msg.content.ptr);
+ 
+
     while (1)
     {
         msg_receive(&msg);
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
+        for(int i=0; i < MAX_CHANNEL; i++)
+        {
+            pf_cal_k_b[i]=(pf_cal_k_b_t*)cfg_get_calibration_k_b(i);
+        }
         if (0) //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
@@ -219,8 +220,8 @@ void *internal_ad_sample_serv(void *arg)
                 printf("mutation data not send done\r\n");
                 continue;
             }
-            mutation_data.rms_data[0] = rms_data[0];
-            mutation_data.rms_data[1] = rms_data[1];
+            mutation_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
+            mutation_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
             for (int i = 0; i < SAMPLE_COUNT; i++)
             {
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
@@ -243,8 +244,8 @@ void *internal_ad_sample_serv(void *arg)
                     general_call_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                     general_call_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
-                general_call_data.rms_data[0] = rms_data[0];
-                general_call_data.rms_data[1] = rms_data[1];
+                general_call_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
+                general_call_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
 
                 send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
                 send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
@@ -260,8 +261,8 @@ void *internal_ad_sample_serv(void *arg)
                     periodic_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                     periodic_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
                 }
-                periodic_data.rms_data[0] = rms_data[0];
-                periodic_data.rms_data[1] = rms_data[1];
+                periodic_data.rms_data[0] = rms_data[0] * pf_cal_k_b[0]->k + pf_cal_k_b[0]->b;
+                periodic_data.rms_data[1] = rms_data[1] * pf_cal_k_b[1]->k + pf_cal_k_b[1]->b;
 
                 send_periodic_msg.type = PF_PERIOD_DATA_TYPE;
                 send_periodic_msg.content.ptr = (void *)(&periodic_data);

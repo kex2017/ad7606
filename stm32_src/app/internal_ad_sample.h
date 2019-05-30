@@ -76,7 +76,6 @@ void pf_data_recv_hook(kernel_pid_t pid);
 void pray_periodic_task(void);
 uint16_t pf_get_threshold(uint8_t channel);
 uint16_t pf_get_changerate(uint8_t channel);
-pf_cal_k_b_t get_pf_over_current_cal_k_b(uint8_t channel);
 uint16_t get_bat_vol(void);
 int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate);
 void send_mutation_msg_is_done(void);

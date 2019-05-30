@@ -73,15 +73,17 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {
         pkg_num += 1;
     }
+
     for (uint16_t i = 0; i < pkg_num; i++) {
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
-            memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, left_data_len);
+            memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, left_data_len);
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, left_data_len);
         }
         else {
-            memcpy(pk_data, over_current_data->curve_data + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
+            memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
+            
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, PACKET_DATA_LEN);
             LOG_INFO("send over current curve data pkg num is %d cur pkg num is %d", pkg_num, i);

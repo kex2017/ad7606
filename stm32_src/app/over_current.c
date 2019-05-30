@@ -170,7 +170,7 @@ static void *over_current_event_service(void *arg)
                 read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);
 //                printf("read data is :\r\n");
                 for(uint16_t i = 0; i < length / 2; i++){
-                    g_over_current_data.curve_data[i] = get_fpga_uint16_data(g_over_current_data.curve_data[i]);
+                    // g_over_current_data.curve_data[i] = get_fpga_uint16_data(g_over_current_data.curve_data[i]);
 //                    if(i+1 == 20)
 //                    printf("\r\n");
 //                    printf("%04x ",g_over_current_data.curve_data[i]);

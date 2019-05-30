@@ -143,6 +143,7 @@ void send_periodic_data(PERIODIC_DATA* pd)
    LOG_INFO("start send periodic time");
 
    length = current_cycle_data_encode(data,DEVICEOK, 0, 2, 0,(uint32_t)pd->rms_data[0],1,(uint32_t)pd->rms_data[1],rtt_get_counter());
+
    msg_send_pack(data,length);
 
    LOG_INFO("send periodic data done");

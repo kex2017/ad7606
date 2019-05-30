@@ -62,9 +62,11 @@ uint16_t pf_get_changerate(uint8_t channel)
 
 void set_default_pf_threshold_rate(void)
 {
+    uint16_t threshold = 2000;
+    uint16_t changerate = 2000;
     for (int i = 0; i < CHANNEL_COUNT; i++)
     {
-        pf_set_threshold_changerate(i, cfg_get_device_channel_threshold(i), cfg_get_device_channel_changerate(i));
+        pf_set_threshold_changerate(i, threshold, changerate);
         LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, cfg_get_device_channel_threshold(i),
                  cfg_get_device_channel_changerate(i));
     }
@@ -104,7 +106,7 @@ int detect_mutation(float *rms_data, RAW_DATA *raw_data)
         {
             return 1;
         }
-        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >=  pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
+        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >= pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
         {
             return 1;
         }
@@ -125,14 +127,13 @@ void pf_data_recv_hook(kernel_pid_t pid)
 }
 static void pf_sample_buff_cb(void)
 {
-    if (irq_packet_i == 7)
+    if (irq_packet_i == 5)
     {
         irq_packet_i = 0;
     }
     // printf("====================/r/n");
     memset((void *)irq_packet[irq_packet_i].data, 0, CHANNEL_COUNT * SAMPLE_COUNT * 2);
     memcpy((void *)irq_packet[irq_packet_i].data, (void *)sample_buf, CHANNEL_COUNT * SAMPLE_COUNT * 2);
-
     irq_msg[irq_packet_i].content.ptr = (void *)&irq_packet[irq_packet_i];
 
     int ret = 0;
@@ -142,9 +143,6 @@ static void pf_sample_buff_cb(void)
     {
         printf("data collection send msg error \r\n");
     }
-
-    // printf("add sample to raw_data finish\r\n");
-    // printf("irq_packet_i = %d\r\n", irq_packet_i);
     irq_packet_i++;
 }
 
@@ -164,7 +162,7 @@ int general_call_task;
 msg_t send_periodic_msg;
 msg_t send_general_call_msg;
 static PERIODIC_DATA periodic_data;
-static GENERAL_CALL_DATA general_call_data ;
+static GENERAL_CALL_DATA general_call_data;
 
 void clear_periodic_task(void)
 {
@@ -173,17 +171,17 @@ void clear_periodic_task(void)
 
 void clear_general_call_task(void)
 {
-   general_call_task = 0;
+    general_call_task = 0;
 }
 
 void pf_general_call_rms(void)
 {
-   general_call_task = CALL_RMS;
+    general_call_task = CALL_RMS;
 }
 
 void pf_general_call_waveform(void)
 {
-   general_call_task = CALL_WAVEFORM;
+    general_call_task = CALL_WAVEFORM;
 }
 
 int get_pf_general_type(void)
@@ -208,13 +206,13 @@ void *internal_ad_sample_serv(void *arg)
     pf_sample_init();
     msg_receive(&msg);
     raw_data = (RAW_DATA *)(msg.content.ptr);
- 
 
     while (1)
     {
         msg_receive(&msg);
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
+
         if (detect_mutation(rms_data,raw_data)) //detect_mutation(rms_data,raw_data)
         {
             if (!mutation_msg_is_done)
@@ -232,7 +230,7 @@ void *internal_ad_sample_serv(void *arg)
             send_mutation_msg.type = PF_CURVE_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
             msg_send(&(send_mutation_msg), data_send_pf_pid);
-
+            mutation_msg_is_done = 0;
             do_periodic_task = 0;
             general_call_task = 0;
         }

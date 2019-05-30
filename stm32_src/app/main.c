@@ -34,7 +34,7 @@ int main(void)
 	load_device_cfg();
 
 	gps_service_init();
-	data_transfer_init();
+	// data_transfer_init();
 	frame_parser_data_init();
 
 	data_send_serv_init();

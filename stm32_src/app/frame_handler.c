@@ -211,7 +211,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 	if(frame_req->frame_req.requset_data.channel > 1)
 	{
 		if (frame_req->frame_req.requset_data.type) {
-
+			trigger_sample_over_current_by_hand(frame_req->frame_req.requset_data.channel);
 		} else {
 			msg.type = PERIOD_DATA_TYPE;
 			msg_send(&msg, data_send_pid);

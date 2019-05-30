@@ -185,6 +185,10 @@ void clear_general_call_task(void)
    general_call_task = 0;
 }
 
+void pray_general_call_task(void)
+{
+   general_call_task = 1;
+}
 void init_task(void)
 {
     clear_periodic_task();

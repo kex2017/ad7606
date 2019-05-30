@@ -122,13 +122,21 @@ void clear_over_current_sample_done_flag(uint8_t channel)
     daq_spi_clear_data_done_flag(channel);
 }
 
+void trigger_sample_over_current_by_hand(uint8_t channel)
+{
+    daq_spi_trigger_sample(channel);
+}
+
 void set_default_threshold_rate(void)
 {
+    uint16_t default_threshold[2] = { 200, 200 }; //cfg_get_device_high_channel_threshold(channel)
+    uint16_t default_changerate[2] = { 4095, 4095 }; //cfg_get_device_high_channel_changerate(channel)cfg_get_device_high_channel_changerate(channel)
+
     for (int channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
-        set_over_current_threshold(channel, cfg_get_device_high_channel_threshold(channel));
-        set_over_current_changerate(channel, cfg_get_device_high_channel_changerate(channel));
-        LOG_INFO("Set over current threshold and changerate for Channel %d: %d ,%d", channel, cfg_get_device_high_channel_threshold(channel),
-                 cfg_get_device_high_channel_changerate(channel));
+        set_over_current_threshold(channel, default_threshold[channel]);
+        set_over_current_changerate(channel, default_changerate[channel]);
+        LOG_INFO("Set over current threshold and changerate for Channel %d: %d ,%d", channel,
+                 default_threshold[channel], default_changerate[channel]);
     }
 }
 
@@ -151,7 +159,7 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 static void *over_current_event_service(void *arg)
 {
     (void)arg;
-    msg_t recv_msg;
+//    msg_t recv_msg;
     uint8_t channel = 0;
     uint32_t length = 0;
 
@@ -159,7 +167,7 @@ static void *over_current_event_service(void *arg)
     set_default_threshold_rate();
 
     while (1) {
-        msg_receive(&recv_msg);
+//        msg_receive(&recv_msg);
         for (channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             if (0 < check_over_current_sample_done(channel)) {
                 if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
@@ -169,7 +177,7 @@ static void *over_current_event_service(void *arg)
                 g_over_current_data.curve_len = length;
                 read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);
 //                printf("read data is :\r\n");
-                for(uint16_t i = 0; i < length; i++){
+                for(uint16_t i = 0; i < length / 2; i++){
                     g_over_current_data.curve_data[i] = get_fpga_uint16_data(g_over_current_data.curve_data[i]);
 //                    if(i+1 == 20)
 //                    printf("\r\n");

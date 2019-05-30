@@ -32,6 +32,7 @@
 #define CHA_RUN_REG 0
 #define DAT_THR_REG 1
 #define CHANGE_RATE_THR 6
+#define TRIGGER_REG 7
 
 void daq_init(void);
 void set_sample_curve_ops(kldaq_dev_t *dev);
@@ -55,6 +56,8 @@ uint32_t daq_spi_one_sec_clk_cnt(void);
 uint32_t daq_spi_chan_cnt_since_plus(uint8_t chan_no);
 //读取FPGA给定特定数值的寄存器（用于验证与fpga通信）
 void daq_spi_read_test_reg(void);
+//触发FPGA无条件采集波形
+void daq_spi_trigger_sample(uint8_t channel);
 //门限设置
 int daq_spi_set_threshold(uint8_t channel, uint16_t threshold);
 //变化率设置

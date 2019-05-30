@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #define MAX_OVER_CURRENT_CHANNEL_COUNT 2
-#define MAX_FPGA_DATA_LEN (4096) //4k*2  4096
+#define MAX_FPGA_DATA_LEN (4096 * 2) //4k*2  4096
 
 typedef struct _over_current_data{
     uint32_t curve_len;
@@ -39,6 +39,7 @@ void set_over_current_changerate(uint8_t channel, uint16_t changerate);
 cal_k_b_t get_over_current_cal_k_b(uint8_t channel);
 void set_over_current_cal_k_b(uint8_t channel, cal_k_b_t cal_k_b);
 
+void trigger_sample_over_current_by_hand(uint8_t channel);
 
 over_current_data_t *get_over_current_data(void);
 int get_over_current_max(uint8_t channel);

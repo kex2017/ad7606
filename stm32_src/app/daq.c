@@ -60,8 +60,7 @@ int daq_spi_sample_done_check(uint8_t channel)
 
 uint16_t daq_spi_get_data_len(uint8_t channel)
 {
-    (void) channel;
-    return CURVE_LEN;
+    return daq_spi_read_reg(channel, DAT_LEN_L);
 }
 
 int daq_spi_get_dat_max(uint8_t channel)
@@ -112,6 +111,11 @@ void daq_spi_read_test_reg(void)
 }
 
 /*write ops*/
+void daq_spi_trigger_sample(uint8_t channel)
+{
+    daq_spi_write_reg(channel, TRIGGER_REG, 1);
+}
+
 int daq_spi_clear_data_done_flag(uint8_t channel)
 {
     if(channel == 0){

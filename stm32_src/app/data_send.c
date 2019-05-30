@@ -10,6 +10,7 @@
 #include "type_alias.h"
 #include "over_current.h"
 #include "periph/rtt.h"
+#include "type_alias.h"
 #include "data_send.h"
 #include "internal_ad_sample.h"
 
@@ -81,13 +82,12 @@ void send_mutation_data(MUTATION_DATA* md)
 
 void send_general_call_data(GENERAL_CALL_DATA* gd)
 {
-	(void)gd;
    uint8_t data[1024] = {0};
    uint16_t length = 0;
 
    LOG_INFO("start send general call data time");
 
-//   length = current_cycle_data_encode(data,0x01,(uint32_t)gd->rms_data[0],(uint32_t)gd->rms_data[1],rtt_get_counter());
+   length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
    msg_send_pack(data,length);
 
    LOG_INFO("send general call data done");
@@ -96,13 +96,12 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
 
 void send_periodic_data(PERIODIC_DATA* pd)
 {
-	(void)pd;
    uint8_t data[1024] = {0};
    uint16_t length = 0;
 
    LOG_INFO("start send periodic time");
 
-//   length = current_cycle_data_encode(data,0x01,(uint32_t)pd->rms_data[0],(uint32_t)pd->rms_data[1],rtt_get_counter());
+   length = current_cycle_data_encode(data,DEVICEOK,2, 0,(uint32_t)pd->rms_data[0],1,(uint32_t)pd->rms_data[1],rtt_get_counter());
    msg_send_pack(data,length);
 
    LOG_INFO("send periodic data done");

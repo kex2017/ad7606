@@ -211,6 +211,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 	if(frame_req->frame_req.requset_data.channel > 1)
 	{
 		if (frame_req->frame_req.requset_data.type) {
+
 		} else {
 			msg.type = PERIOD_DATA_TYPE;
 			msg_send(&msg, data_send_pid);
@@ -220,7 +221,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 
 		}
 		else{
-
+//			pray_general_call_task();
 		}
 	}
 }

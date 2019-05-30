@@ -226,7 +226,7 @@ void update_device_cfg(void)
 {
 	uint32_t page = 0;
 
-	g_device_cfg.device_cfg.flag = FLAG_OFF;
+	g_device_cfg.device_cfg.flag = FLAG_ON;
 	page = get_device_cfg_flash_page_addr();
     flashpage_write(page, g_device_cfg.env_buf);
 }

@@ -18,15 +18,20 @@ void send_high_current_cycle_data(void)
     uint8_t data[256] = { 0 };
     uint16_t len = 0;
 
-    cal_k_b_t k_b[MAX_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
+    cal_k_b_t* k_b[MAX_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
     uint32_t hf_cur[MAX_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
     for (uint8_t channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
-        k_b[channel] = get_over_current_cal_k_b(channel);
-        hf_cur[channel] = k_b[channel].k * get_over_current_max(channel) + k_b[channel].b;
+        k_b[channel] = (cal_k_b_t*)cfg_get_high_calibration_k_b(channel);
+        hf_cur[channel] = k_b[channel]->k * get_over_current_max(channel) + k_b[channel]->b;
     }
     len = high_current_cycle_data_encode(data, DEVICEOK, hf_cur[0], hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);
+//    printf("send high current cycle data\r\n");
+//    for(uint16_t i = 0; i < len; i++){
+//        printf("%02x ", data[i]);
+//    }
+//    printf("\r\n");
 }
 
 void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel)

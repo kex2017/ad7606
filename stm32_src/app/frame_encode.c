@@ -289,7 +289,7 @@ uint16_t frame_collection_cycle_data_encode(uint8_t *data, uint8_t errcode, uint
 	return index;
 }
 
-uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode,uint8_t channel, float k, float b)
+uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode,uint8_t channel, uint32_t timestamp)
 {
     uint16_t index = 0;
 
@@ -297,8 +297,7 @@ uint16_t frame_set_channel_info_rsp_encode(uint8_t *data, uint8_t errcode,uint8_
     index += frame_uint8_encode(data + index, SET_CHANNEL_INFO_RSP);
     index += frame_uint8_encode(data + index, errcode);
     index += frame_uint8_encode(data + index, channel);
-    index += frame_float_encode(data + index, k);
-    index += frame_float_encode(data + index, b);
+    index += frame_uint32_encode(data +index , timestamp);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
     return index;

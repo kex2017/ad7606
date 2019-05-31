@@ -66,8 +66,7 @@ uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_
 
 uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
-	master_frame_req->frame_req.requset_data.channel = frame_data[0];
-	master_frame_req->frame_req.requset_data.type = frame_data[1];
+	master_frame_req->frame_req.requset_data.type = frame_data[0];
 	return sizeof(uint16_t);
 }
 

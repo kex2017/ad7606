@@ -99,7 +99,6 @@ typedef struct _channel_info{
 }channel_info_t;
 
 typedef struct _requset_data{
-	uint8_t channel;
 	uint8_t type;
 }requset_data_t;
 

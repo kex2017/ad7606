@@ -12,7 +12,7 @@
 #include "over_current.h"
 
 #define PERIOD_DATA_TYPE 0
-#define PF_CURVE_TYPE 1
+#define PF_MUTATION_TYPE 1
 #define PF_PERIOD_DATA_TYPE 3
 #define GENERAL_CALL_DATA_TYPE 4
 

@@ -105,12 +105,9 @@ void set_channel_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
-	calibration_data_t * calibration_data = NULL;
 	set_chennel_info_by_type(&frame_req->frame_req.channel_info);
 
-	calibration_data = cfg_get_calibration_k_b(frame_req->frame_req.channel_info.channel);
-
-	length = frame_set_channel_info_rsp_encode(data, DEVICEOK,frame_req->frame_req.channel_info.channel, calibration_data->k, calibration_data->b);
+	length = frame_set_channel_info_rsp_encode(data, DEVICEOK,frame_req->frame_req.channel_info.channel, rtt_get_counter());
 
 	msg_send_pack(data, length);
 }

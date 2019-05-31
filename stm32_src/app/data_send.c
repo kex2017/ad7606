@@ -25,6 +25,7 @@ void send_high_current_cycle_data(uint8_t send_type)
 
     for (uint8_t channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {
         hf_cur[channel] = get_over_current_max(channel);
+        LOG_INFO("hf cur channel[%d]: %ld", channel, hf_cur[channel]);
     }
     len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);
@@ -68,6 +69,8 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;
     uint32_t timestamp = rtt_get_counter();
+
+    channel = channel + 2;//hf channle is 2,3
 
     pkg_num = over_current_data->curve_len / PACKET_DATA_LEN;
     if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {

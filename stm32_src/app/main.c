@@ -31,6 +31,8 @@ int main(void)
 {
 	ext_pm_init();
 	daq_init();
+	delay_s(5);
+
 	load_device_cfg();
 
 	gps_service_init();

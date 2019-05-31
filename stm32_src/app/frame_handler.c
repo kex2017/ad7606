@@ -164,7 +164,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 			pf_general_call_waveform();
 		} else {
 			msg.type = PERIOD_DATA_TYPE;
-			msg.content.value = 1;
+			msg.content.value = SEND_CALL;
 			msg_send(&msg, data_send_pid);
 			pf_general_call_rms();
 		}

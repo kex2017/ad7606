@@ -86,11 +86,10 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
         }
         else {
             memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
-            
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, PACKET_DATA_LEN);
-            LOG_INFO("send over current curve data pkg num is %d cur pkg num is %d", pkg_num, i);
         }
+        LOG_INFO("send over current curve data pkg num is %d cur pkg num is %d", pkg_num, i);
         msg_send_pack(data, len);
         delay_ms(600);
     }
@@ -163,7 +162,7 @@ static msg_t send_task_rcv_queue[8];
 
 static void upload_period_data(uint8_t send_type)
 {
-    printf("-----------send_high_current_cycle_data \r\n");
+    LOG_INFO("send_high current cycle data");
     send_high_current_cycle_data(send_type);
 }
 
@@ -185,7 +184,7 @@ void *data_send_serv(void *arg)
             pd = (PERIODIC_DATA*)(msg.content.ptr);
             send_periodic_data(pd);
             break;
-        case PF_CURVE_TYPE:
+        case PF_MUTATION_TYPE:
             md = (MUTATION_DATA*)(msg.content.ptr);
             send_mutation_data(md);
             send_mutation_msg_is_done();

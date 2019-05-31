@@ -75,7 +75,7 @@ void pray_periodic_task(void);
 uint16_t pf_get_threshold(uint8_t channel);
 uint16_t pf_get_changerate(uint8_t channel);
 uint16_t get_bat_vol(void);
-int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold,uint16_t changerate);
+int pf_set_threshold(uint8_t channel, uint16_t threshold);
 void send_mutation_msg_is_done(void);
 void pf_general_call_rms(void);
 void pf_general_call_waveform(void);

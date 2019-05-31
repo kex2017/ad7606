@@ -44,10 +44,9 @@ PF_DATA pf_data;
 msg_t sample_done_msg;
 msg_t send_mutation_msg;
 
-int pf_set_threshold_changerate(uint8_t channel, uint16_t threshold, uint16_t changerate)
+int pf_set_threshold(uint8_t channel, uint16_t threshold)
 {
     pf_data.pf_threshold_chanagerate[channel].pf_threshold = threshold;
-    pf_data.pf_threshold_chanagerate[channel].pf_chanagerate = changerate;
     return 0;
 }
 
@@ -63,12 +62,10 @@ uint16_t pf_get_changerate(uint8_t channel)
 void set_default_pf_threshold_rate(void)
 {
     uint16_t threshold = 2000;
-    uint16_t changerate = 2000;
     for (int i = 0; i < CHANNEL_COUNT; i++)
     {
-        pf_set_threshold_changerate(i, threshold, changerate);
-        LOG_INFO("Set pf over current threshold and changerate for Channel %d: %d ,%d", i, threshold,
-                 changerate);
+        pf_set_threshold(i, threshold);
+        LOG_INFO("Set pf over current threshold for Channel %d: %d", i, threshold);
     }
 }
 
@@ -97,16 +94,12 @@ void calc_rms(RAW_DATA *raw_data, float *rms_data)
     }
 }
 
-int detect_mutation(float *rms_data, RAW_DATA *raw_data)
+int detect_mutation(float *rms_data)
 {
     int i = 0;
     for (i = 0; i < CHANNEL_COUNT; i++)
     {
         if (rms_data[i] > pf_data.pf_threshold_chanagerate[i].pf_threshold)
-        {
-            return 1;
-        }
-        if ((uint32_t)fabs((double)raw_data->data[0] - (double)raw_data->data[31]) >= pf_data.pf_threshold_chanagerate[i].pf_chanagerate)
         {
             return 1;
         }
@@ -213,7 +206,7 @@ void *internal_ad_sample_serv(void *arg)
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
 
-        if (detect_mutation(rms_data,raw_data)) //detect_mutation(rms_data,raw_data)
+        if (detect_mutation(rms_data))
         {
             if (!mutation_msg_is_done)
             {

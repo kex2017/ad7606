@@ -96,8 +96,8 @@ void set_chennel_info_by_type(channel_info_t * channel_info)
 				channel_info->threshold);
 		cfg_set_device_changerate(channel_info->channel,
 				channel_info->change_rate);
-		pf_set_threshold_changerate(channel_info->channel,
-			channel_info->threshold, channel_info->change_rate);
+		pf_set_threshold(channel_info->channel,
+			channel_info->threshold);
 	}
 }
 

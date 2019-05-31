@@ -248,7 +248,7 @@ void *internal_ad_sample_serv(void *arg)
                 general_call_data.rms_data[1] = rms_data[1] ;
 
                 send_general_call_msg.type = GENERAL_CALL_DATA_TYPE;
-                send_general_call_msg.content.ptr = (void *)(&send_general_call_msg);
+                send_general_call_msg.content.ptr = (void *)(&general_call_data);
                 msg_send(&send_general_call_msg, data_send_pf_pid);
 
                 general_call_task = 0;

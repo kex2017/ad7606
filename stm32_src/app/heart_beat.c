@@ -41,7 +41,7 @@ void *send_heart_beat_handler(void* arg)
  	static int times = 0;
  	while (1) {
  		delay_s(60);
-		if(times == 10)
+		if(times % 10 == 0)
 		{
 			do_send_dev_info_msg();
 		}

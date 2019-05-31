@@ -155,19 +155,20 @@ void request_data_hook(kernel_pid_t pid)
 
 void server_request_data_handler(frame_req_t *frame_req)
 {
-	msg_t msg;
-		if (frame_req->frame_req.requset_data.type) {
-			for(int i = 0; i< 2; i++)
-			{
-			trigger_sample_over_current_by_hand(1);
-			}
-			pf_general_call_waveform();
-		} else {
-			msg.type = PERIOD_DATA_TYPE;
-			msg.content.value = SEND_CALL;
-			msg_send(&msg, data_send_pid);
-			pf_general_call_rms();
-		}
+    msg_t msg;
+    if (frame_req->frame_req.requset_data.type) {
+        for (int i = 0; i < 2; i++) {
+            trigger_sample_over_current_by_hand(i);
+        }
+        pf_general_call_waveform();
+    }
+    else {
+        msg.type = PERIOD_DATA_TYPE;
+        msg.content.value = SEND_CALL;
+        msg_send(&msg, data_send_pid);
+        delay_s(1);
+        pf_general_call_rms();
+    }
 
 }
 

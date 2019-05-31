@@ -112,7 +112,7 @@ void send_mutation_data(MUTATION_DATA* md)
 
 void send_general_call_data(GENERAL_CALL_DATA* gd)
 {
-   uint8_t data[1024] = {0};
+   uint8_t data[512] = {0};
    uint16_t length = 0;
 
    int call_type = 0;
@@ -127,10 +127,10 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
    }
    else if(call_type == CALL_WAVEFORM)
    {
-        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_1,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_1,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT*2);
         msg_send_pack(data,length);
 
-        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT*2);
         msg_send_pack(data,length);
    }
    

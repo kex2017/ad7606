@@ -227,7 +227,7 @@ void *internal_ad_sample_serv(void *arg)
                 mutation_data.channel1[i] = raw_data->data[CHANNEL_COUNT * i + 0];
                 mutation_data.channel2[i] = raw_data->data[CHANNEL_COUNT * i + 1];
             }
-            send_mutation_msg.type = PF_CURVE_TYPE;
+            send_mutation_msg.type = PF_MUTATION_TYPE;
             send_mutation_msg.content.ptr = (void *)(&(mutation_data));
             msg_send(&(send_mutation_msg), data_send_pf_pid);
             mutation_msg_is_done = 0;

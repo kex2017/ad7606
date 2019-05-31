@@ -81,12 +81,12 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
             memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, left_data_len);
-            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, left_data_len);
         }
         else {
             memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
-            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, channel, pkg_num, i,
                                                     pk_data, PACKET_DATA_LEN);
         }
         LOG_INFO("send over current curve data pkg num is %d cur pkg num is %d", pkg_num, i);
@@ -102,10 +102,10 @@ void send_mutation_data(MUTATION_DATA* md)
 
    LOG_INFO("start send mutatuin time");
 
-   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(),0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
    msg_send_pack(data,length);
 
-   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
    msg_send_pack(data,length);
    LOG_INFO("send mutatuin data done");
 }
@@ -127,10 +127,10 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
    }
    else if(call_type == CALL_WAVEFORM)
    {
-        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_1,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT*2);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(), 0, 0, CHANNEL_1,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT*2);
         msg_send_pack(data,length);
 
-        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT*2);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(), 0, 0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT*2);
         msg_send_pack(data,length);
    }
    

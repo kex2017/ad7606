@@ -189,7 +189,7 @@ uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t sen
 }
 
 
-uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_t send_type,uint32_t timestamp, uint32_t ns_clk_num, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
+uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_t send_type, uint32_t timestamp, uint32_t one_sec_clk_cnt, uint32_t ns_clk_num, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
 {
 	uint16_t index = 0;
 
@@ -198,6 +198,7 @@ uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_
 	index += frame_uint8_encode(data + index, errorcode);
 	index += frame_uint8_encode(data + index, send_type);
 	index += frame_uint32_encode(data + index, timestamp);
+	index += frame_uint32_encode(data + index, one_sec_clk_cnt);
 	index += frame_uint32_encode(data + index, ns_clk_num);
 	index += frame_uint8_encode(data + index, channel);
 	index += frame_uint16_encode(data + index, pkg_sum);

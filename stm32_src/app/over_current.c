@@ -165,6 +165,7 @@ static void *over_current_event_service(void *arg)
                     LOG_WARN("Get over current curve data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", length);
                     continue;
                 }
+                g_over_current_data.one_sec_clk_cnt = daq_spi_one_sec_clk_cnt();
                 g_over_current_data.curve_len = length;
                 g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
                 read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);

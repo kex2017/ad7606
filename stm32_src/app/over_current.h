@@ -16,6 +16,7 @@ typedef struct _over_current_data{
     uint32_t curve_len;
     uint16_t curve_data[MAX_FPGA_DATA_LEN];
     uint32_t ns_cnt;
+    uint32_t one_sec_clk_cnt;
 }over_current_data_t;
 
 typedef struct _over_current_info {

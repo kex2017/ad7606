@@ -10,6 +10,7 @@
 #include "x_delay.h"
 #include "periph/gpio.h"
 #include "data_send.h"
+#include "data_transfer.h"
 #include "daq.h"
 
 kernel_pid_t over_current_pid = KERNEL_PID_UNDEF;
@@ -150,12 +151,10 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 static void *over_current_event_service(void *arg)
 {
     (void)arg;
-//    msg_t recv_msg;
     uint8_t channel = 0;
     uint32_t length = 0;
     uint8_t send_type = 0;
 
-    init_over_current_irq();
     set_default_threshold_rate();
 
     while (1) {
@@ -167,18 +166,19 @@ static void *over_current_event_service(void *arg)
                     continue;
                 }
                 g_over_current_data.curve_len = length;
+                g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
                 read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);
 //                printf("read data is :\r\n");
-                for(uint16_t i = 0; i < length / 2; i++){
+//                for(uint16_t i = 0; i < length / 2; i++){
                     // g_over_current_data.curve_data[i] = get_fpga_uint16_data(g_over_current_data.curve_data[i]);
 //                    if(i+1 == 20)
 //                    printf("\r\n");
 //                    printf("%04x ",g_over_current_data.curve_data[i]);
+//                }
+//                LOG_INFO("channel %d length is %d ns cnt is %ld", channel, length, g_over_current_data.ns_cnt);
+                if(get_ec20_link_flag()){
+                    send_over_current_curve(&g_over_current_data, channel, send_type);
                 }
-                g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
-                LOG_INFO("channel %d length is %d ns cnt is %ld\r\n", channel, length, g_over_current_data.ns_cnt);
-
-                send_over_current_curve(&g_over_current_data, channel+2, send_type);
                 memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                 clear_over_current_sample_done_flag(channel);
             }

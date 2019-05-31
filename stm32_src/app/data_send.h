@@ -21,8 +21,12 @@
 
 
 
-#define CHANNEL_1 0x01
-#define CHANNEL_2 0x02
+#define CHANNEL_1 0
+#define CHANNEL_2 1
+
+#define SEND_PERIOD_TYPE 0
+#define SEND_MUTATION 0
+#define SEND_CALL 1
 
 uint8_t get_send_type(void);
 

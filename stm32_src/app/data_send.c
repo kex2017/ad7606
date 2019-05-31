@@ -100,10 +100,10 @@ void send_mutation_data(MUTATION_DATA* md)
 
    LOG_INFO("start send mutatuin time");
 
-   length = current_mutation_data_encode(data,DEVICEOK, 0, rtt_get_counter(),0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(),0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
    msg_send_pack(data,length);
 
-   length = current_mutation_data_encode(data,DEVICEOK, 0, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
    msg_send_pack(data,length);
    LOG_INFO("send mutatuin data done");
 }
@@ -120,15 +120,15 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
 
    if(call_type == CALL_RMS)
    {
-        length = current_cycle_data_encode(data,DEVICEOK, CALL_RMS, 2, 0,(uint32_t)gd->rms_data[0],1,(uint32_t)gd->rms_data[1],rtt_get_counter());
+        length = current_cycle_data_encode(data,DEVICEOK, SEND_CALL, PF_CHANNEL_COUNT, CHANNEL_1,(uint32_t)gd->rms_data[0],CHANNEL_2,(uint32_t)gd->rms_data[1],rtt_get_counter());
         msg_send_pack(data,length);
    }
    else if(call_type == CALL_WAVEFORM)
    {
-        length = current_mutation_data_encode(data,DEVICEOK, 1, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_1,1,0,(uint8_t*)gd->channel1,SAMPLE_COUNT);
         msg_send_pack(data,length);
 
-        length = current_mutation_data_encode(data,DEVICEOK, 1, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
+        length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(),0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT);
         msg_send_pack(data,length);
    }
    
@@ -146,7 +146,9 @@ void send_periodic_data(PERIODIC_DATA* pd)
 
    LOG_INFO("start send periodic time");
 
-   length = current_cycle_data_encode(data,DEVICEOK, 0, 2, 0,(uint32_t)pd->rms_data[0],1,(uint32_t)pd->rms_data[1],rtt_get_counter());
+   printf("pd->rms_data[0] = %ld,pd->rms_data[1] = %ld\r\n",(uint32_t)pd->rms_data[0],(uint32_t)pd->rms_data[1]);
+
+   length = current_cycle_data_encode(data,DEVICEOK, SEND_PERIOD_TYPE, PF_CHANNEL_COUNT, CHANNEL_1,(uint32_t)pd->rms_data[0],CHANNEL_2,(uint32_t)pd->rms_data[1],rtt_get_counter());
 
    msg_send_pack(data,length);
 

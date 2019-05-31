@@ -67,8 +67,8 @@ void set_default_pf_threshold_rate(void)
     for (int i = 0; i < CHANNEL_COUNT; i++)
     {
         pf_set_threshold_changerate(i, threshold, changerate);
-        LOG_INFO("Set pf over current threshold and changerate for Channel %d: 0x%04X ,0x%04X", i, cfg_get_device_channel_threshold(i),
-                 cfg_get_device_channel_changerate(i));
+        LOG_INFO("Set pf over current threshold and changerate for Channel %d: %d ,%d", i, threshold,
+                 changerate);
     }
 }
 

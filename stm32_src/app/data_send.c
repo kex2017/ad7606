@@ -29,12 +29,6 @@ void send_high_current_cycle_data(uint8_t send_type)
     }
     len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0, hf_cur[0], HF_CHAN_1, hf_cur[1], rtt_get_counter());
     msg_send_pack(data, len);
-
-//    printf("send high current cycle data\r\n");
-//    for(uint16_t i = 0; i < len; i++){
-//        printf("%02x ", data[i]);
-//    }
-//    printf("\r\n");
 }
 
 uint8_t server_call_data_flag = 0;

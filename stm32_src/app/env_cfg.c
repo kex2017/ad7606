@@ -15,8 +15,8 @@
 #include "periph/flashpage.h"
 
 enum{
-    FLAG_ON = 1,
-    FLAG_OFF = -1
+    FLAG_ON = 0x212100,
+    FLAG_OFF = 0x121201
 };
 
 typedef struct _device_cfg {
@@ -218,7 +218,7 @@ void load_device_cfg(void)
 
 	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
-//		update_device_cfg();
+		update_device_cfg();
 	}
 }
 

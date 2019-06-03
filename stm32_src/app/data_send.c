@@ -102,10 +102,10 @@ void send_mutation_data(MUTATION_DATA* md)
 
    LOG_INFO("start send mutatuin time");
 
-   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0 ,CHANNEL_1,1,0,(uint8_t*)md->channel1,SAMPLE_COUNT*2);
    msg_send_pack(data,length);
 
-   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT);
+   length = current_mutation_data_encode(data,DEVICEOK, SEND_MUTATION, rtt_get_counter(), 0, 0, CHANNEL_2,1,0,(uint8_t*)md->channel2,SAMPLE_COUNT*2);
    msg_send_pack(data,length);
    LOG_INFO("send mutatuin data done");
 }

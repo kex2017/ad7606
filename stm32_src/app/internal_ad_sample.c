@@ -206,6 +206,8 @@ void *internal_ad_sample_serv(void *arg)
         raw_data = (RAW_DATA *)(msg.content.ptr);
         calc_rms(raw_data, rms_data);
 
+        // printf("raw_data[1] = %d,rms_data[1] = %lf\r\n",raw_data->data[1],rms_data[1]);
+
         if (detect_mutation(rms_data))
         {
             if (!mutation_msg_is_done)

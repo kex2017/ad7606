@@ -126,6 +126,7 @@ void send_general_call_data(GENERAL_CALL_DATA* gd)
 
         length = current_mutation_data_encode(data,DEVICEOK, SEND_CALL, rtt_get_counter(), 0, 0, CHANNEL_2,1,0,(uint8_t*)gd->channel2,SAMPLE_COUNT*2);
         msg_send_pack(data,length);
+
    }
    
 
@@ -141,8 +142,6 @@ void send_periodic_data(PERIODIC_DATA* pd)
    uint16_t length = 0;
 
    LOG_INFO("start send periodic time");
-
-   printf("pd->rms_data[0] = %ld,pd->rms_data[1] = %ld\r\n",(uint32_t)pd->rms_data[0],(uint32_t)pd->rms_data[1]);
 
    length = current_cycle_data_encode(data,DEVICEOK, SEND_PERIOD_TYPE, PF_CHANNEL_COUNT, CHANNEL_1,(uint32_t)pd->rms_data[0],CHANNEL_2,(uint32_t)pd->rms_data[1],rtt_get_counter());
 

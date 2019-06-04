@@ -181,8 +181,8 @@ void cfg_set_high_device_k_b(uint8_t channel, float k, float b)
     update_device_cfg();
 }
 
-#define DEFAULT_THRESHOLD (10000U)
-#define DATA_CHANGE_RATE (200U);
+#define DEFAULT_THRESHOLD (200)
+#define DATA_CHANGE_RATE (2047U);
 void load_device_cfg(void)
 {
 	uint32_t page = 0;
@@ -216,7 +216,7 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
+	if (g_device_cfg.device_cfg.flag != FLAG_OFF) {
 		g_device_cfg.device_cfg = device_cfg;
 		update_device_cfg();
 	}

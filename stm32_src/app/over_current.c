@@ -121,7 +121,7 @@ void trigger_sample_over_current_by_hand(uint8_t channel)
 
 void set_default_threshold_rate(void)
 {
-    uint16_t default_threshold[2] = { 2047, 2047 }; //cfg_get_device_high_channel_threshold(channel)
+    uint16_t default_threshold[2] = { 200, 200 }; //cfg_get_device_high_channel_threshold(channel)
     uint16_t default_changerate[2] = { 4095, 4095 }; //cfg_get_device_high_channel_changerate(channel)cfg_get_device_high_channel_changerate(channel)
 
     for (int channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++) {

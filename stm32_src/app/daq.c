@@ -55,7 +55,7 @@ int daq_spi_sample_data_read(uint8_t channel, uint8_t *data, uint32_t addr, size
 int daq_spi_sample_done_check(uint8_t channel)
 {
     uint16_t chan_status = daq_spi_read_reg(channel, CHA_STA_REG);
-    return chan_status&(1 << (channel+1));
+    return chan_status&0x02;
 }
 
 uint16_t daq_spi_get_data_len(uint8_t channel)
@@ -90,7 +90,7 @@ uint32_t daq_spi_chan_cnt_since_plus(uint8_t chan_no)
         chan_cnt = daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
     }
     else if(chan_no == 1){
-        chan_cnt = daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
+        chan_cnt = daq_spi_read_reg(1, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
     }
 
     return chan_cnt;
@@ -122,7 +122,7 @@ int daq_spi_clear_data_done_flag(uint8_t channel)
         daq_spi_write_reg(0, CHA_RUN_REG, 1 << 4);
     }
     else if(channel == 1){
-        daq_spi_write_reg(0, CHA_RUN_REG, 1 << 5);
+        daq_spi_write_reg(1, CHA_RUN_REG, 1 << 5);
     }
     return 0;
 }

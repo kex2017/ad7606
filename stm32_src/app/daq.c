@@ -55,7 +55,7 @@ int daq_spi_sample_data_read(uint8_t channel, uint8_t *data, uint32_t addr, size
 int daq_spi_sample_done_check(uint8_t channel)
 {
     uint16_t chan_status = daq_spi_read_reg(channel, CHA_STA_REG);
-    return chan_status&0x0002;
+    return chan_status&(1 << (channel+1));
 }
 
 uint16_t daq_spi_get_data_len(uint8_t channel)

@@ -52,6 +52,16 @@ void test_set_device_data_interval(uint32_t interval)
 	update_device_cfg();
 }
 
+void test_set_device_threshold(uint16_t threshold)
+{
+	printf("Try to set threshold = %d\r\n",threshold);
+	for(int i = 0; i < 0; i++)
+	{
+		cfg_set_device_threshold(i,threshold);
+		cfg_set_high_device_threshold(i,threshold);
+	}
+}
+
 void test_reboot(void)
 {
 	printf("Try to reboot system now!\r\n");
@@ -63,6 +73,7 @@ int test_set_device_cfg(int argc, char **argv)
 	int opt = 0;
 	uint16_t device_id = 0;
 	uint32_t interval = 0;
+	uint16_t threshold = 0;
 
 	static const struct option long_opts[] = {
 			{ "help", no_argument, NULL, 'h' },
@@ -80,7 +91,7 @@ int test_set_device_cfg(int argc, char **argv)
         return 1;
     }
 
-    while ((opt = getopt_long(argc, argv, "hsi:v:I:r", long_opts, NULL))!= -1) {
+    while ((opt = getopt_long(argc, argv, "hsi:v:I:t:r", long_opts, NULL))!= -1) {
     	switch (opt) {
     	case 'h':
     		env_cfg_usage();
@@ -102,6 +113,10 @@ int test_set_device_cfg(int argc, char **argv)
     		break;
     	case 'r':
     		test_reboot();
+    		break;
+    	case 't':
+    		threshold = (uint16_t)atoi(optarg);
+    		test_set_device_threshold(threshold);
     		break;
     	default:
 			if (!optarg) {

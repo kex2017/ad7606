@@ -61,7 +61,7 @@ uint16_t pf_get_changerate(uint8_t channel)
 
 void set_default_pf_threshold_rate(void)
 {
-    uint16_t threshold = 2000;
+    uint16_t threshold = 200;
     for (int i = 0; i < CHANNEL_COUNT; i++)
     {
         pf_set_threshold(i, threshold);
@@ -213,6 +213,7 @@ void *internal_ad_sample_serv(void *arg)
             if (!mutation_msg_is_done)
             {
                 printf("mutation data not send done\r\n");
+                delay_ms(500);
                 continue;
             }
             mutation_data.rms_data[0] = rms_data[0] ;

@@ -166,10 +166,7 @@ void server_request_data_handler(frame_req_t *frame_req)
 	msg_t msg;
 	if (frame_req->frame_req.requset_data.type)
 	{
-		for (int i = 0; i < 2; i++)
-		{
-			trigger_sample_over_current_by_hand(i);
-		}
+	    trigger_sample_over_current_by_hand();
 		pf_general_call_waveform();
 	}
 	else

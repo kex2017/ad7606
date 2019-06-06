@@ -31,7 +31,7 @@ over_current_info_t *get_over_current_info(uint8_t channel);
 void set_over_current_threshold(uint8_t channel, uint16_t threshold);
 void set_over_current_changerate(uint8_t channel, uint16_t changerate);
 
-void trigger_sample_over_current_by_hand(uint8_t channel);
+void trigger_sample_over_current_by_hand(void);
 
 over_current_data_t *get_over_current_data(void);
 int get_over_current_max(uint8_t channel);

@@ -113,9 +113,11 @@ void clear_over_current_sample_done_flag(uint8_t channel)
     daq_spi_clear_data_done_flag(channel);
 }
 
-void trigger_sample_over_current_by_hand(uint8_t channel)
+void trigger_sample_over_current_by_hand(void)
 {
-    daq_spi_trigger_sample(channel);
+    for(uint8_t channel = 0; channel < MAX_OVER_CURRENT_CHANNEL_COUNT; channel++){
+        daq_spi_trigger_sample(channel);
+    }
     set_server_call_flag(1);
 }
 

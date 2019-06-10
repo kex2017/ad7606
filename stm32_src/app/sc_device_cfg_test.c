@@ -127,5 +127,6 @@ int test_set_device_cfg(int argc, char **argv)
 			break;
     	}
     }
+    optind = 1;
     return 0;
 }

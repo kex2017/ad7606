@@ -62,7 +62,7 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     uint8_t pk_data[PACKET_DATA_LEN] = {0};
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;
-    uint32_t timestamp = rtt_get_counter();
+    uint32_t timestamp = over_current_data->timestamp;
 
     channel = channel + 2;//hf channle is 2,3
 

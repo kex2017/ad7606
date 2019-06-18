@@ -15,14 +15,26 @@
 #define DAT_MAX_REG 4
 #define DAT_AVR_REG 5
 
-#define ONE_SECOND_CNT_H 8
-#define ONE_SECOND_CNT_L 9
+#define CHA0_ONE_SECOND_CNT_H 8
+#define CHA0_ONE_SECOND_CNT_L 9
+
+#define CHA1_ONE_SECOND_CNT_H 24
+#define CHA1_ONE_SECOND_CNT_L 25
 
 #define CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H 10
 #define CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L 11
 
-#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H 12
-#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L 13
+#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H 22
+#define CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L 23
+
+#define CHA0_EVENT_UTC_TIME_H 18
+#define CHA0_EVENT_UTC_TIME_L 19
+
+#define CHA1_EVENT_UTC_TIME_H 20
+#define CHA1_EVENT_UTC_TIME_L 21
+
+#define SET_UTC_TIME_H 19
+#define SET_UTC_TIME_L 20
 
 #define FPGA_READ_TEST_REG 14
 
@@ -50,8 +62,12 @@ int daq_spi_get_dat_avr(uint8_t channel);
 int daq_spi_get_dat_max(uint8_t channel);
 //检测该通道是否抓取到异常波形
 int daq_spi_sample_done_check(uint8_t channel);
+//读取fpga utc 时间
+uint32_t daq_spi_chan_event_utc(uint8_t chan_no);
+//设置fpga utc时间
+void daq_spi_chan_set_fpga_utc(uint32_t utc_time);
 //秒脉冲计数
-uint32_t daq_spi_one_sec_clk_cnt(void);
+uint32_t daq_spi_one_sec_clk_cnt(uint8_t chan_no);
 //通道故障原始波形距离秒脉冲的时钟计数
 uint32_t daq_spi_chan_cnt_since_plus(uint8_t chan_no);
 //读取FPGA给定特定数值的寄存器（用于验证与fpga通信）

@@ -167,8 +167,12 @@ static void *over_current_event_service(void *arg)
                     LOG_WARN("Get over current curve data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", length);
                     continue;
                 }
-                g_over_current_data.timestamp = rtt_get_counter();
-                g_over_current_data.one_sec_clk_cnt = daq_spi_one_sec_clk_cnt();
+
+                LOG_INFO("channel %d utc reg value %d", channel, daq_spi_chan_event_utc(channel));
+                LOG_INFO("channel %d cnt_since_plus reg value %d", channel, daq_spi_chan_cnt_since_plus(channel));
+                LOG_INFO("channel %d one_sec_clk_cnt reg value %d", channel, daq_spi_one_sec_clk_cnt(channel));
+                g_over_current_data.timestamp = daq_spi_chan_event_utc(channel);
+                g_over_current_data.one_sec_clk_cnt = daq_spi_one_sec_clk_cnt(channel);
                 g_over_current_data.curve_len = length;
                 g_over_current_data.ns_cnt = read_over_current_ns_cnt(channel);
                 read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);

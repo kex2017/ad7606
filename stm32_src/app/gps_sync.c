@@ -9,8 +9,9 @@
 #include "log.h"
 #include "thread.h"
 #include "env_cfg.h"
+#include "daq.h"
 
-#define GPS_INTERVAL  50U
+#define GPS_INTERVAL  300U
 #define GPS_GET_TIME_INTERVAL 200U
 #define GPS_GET_COORDINATES_INTERVAL 2U
 #define GPS_RX_BUFSIZE    (512)
@@ -138,20 +139,20 @@ void *gps_handler(void *arg)
 {
    /* ... */
    (void)arg;
-
+   uint32_t gps_time = 0;
    gps_init();
 
    while(!gps_get_time())
    {
        delay_ms(10);
    }
-
+    gps_time = rtt_get_counter();
+    daq_spi_chan_set_fpga_utc(gps_time);
 
    while(!gps_get_coordinates())
    {
        delay_ms(10);
    }
-
 
    while (1)
    {
@@ -159,8 +160,9 @@ void *gps_handler(void *arg)
 		while (!gps_get_time()) {
 			delay_ms(10);
 		}
+		gps_time = rtt_get_counter();
+		daq_spi_chan_set_fpga_utc(gps_time);
 	}
-
 
    return NULL;
 }

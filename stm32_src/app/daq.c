@@ -73,11 +73,16 @@ int daq_spi_get_dat_avr(uint8_t channel)
     return daq_spi_read_reg(channel, DAT_AVR_REG);
 }
 
-uint32_t daq_spi_one_sec_clk_cnt(void)
+uint32_t daq_spi_one_sec_clk_cnt(uint8_t chan_no)
 {
     uint32_t clk_cnt = 0;
 
-    clk_cnt = daq_spi_read_reg(0, ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(0, ONE_SECOND_CNT_L);
+    if(chan_no == 0){
+        clk_cnt = daq_spi_read_reg(0, CHA0_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(0, CHA0_ONE_SECOND_CNT_L);
+    }
+    else if(chan_no == 1){
+        clk_cnt = daq_spi_read_reg(0, CHA1_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(0, CHA1_ONE_SECOND_CNT_L);
+    }
 
     return clk_cnt;
 }
@@ -94,6 +99,26 @@ uint32_t daq_spi_chan_cnt_since_plus(uint8_t chan_no)
     }
 
     return chan_cnt;
+}
+
+uint32_t daq_spi_chan_event_utc(uint8_t chan_no)
+{
+    uint32_t fpga_utc = 0;
+
+    if(chan_no == 0){
+        fpga_utc = daq_spi_read_reg(0, CHA0_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(0, CHA0_EVENT_UTC_TIME_L);
+    }
+    else if(chan_no == 1){
+        fpga_utc = daq_spi_read_reg(1, CHA1_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(0, CHA1_EVENT_UTC_TIME_L);
+    }
+
+    return fpga_utc;
+}
+
+void daq_spi_chan_set_fpga_utc(uint32_t utc_time)
+{
+    daq_spi_write_reg(0, SET_UTC_TIME_H, (utc_time >> 16) & 0xFFFF);
+    daq_spi_write_reg(0, SET_UTC_TIME_L, utc_time & 0xFFFF);
 }
 
 void daq_spi_read_test_reg(void)

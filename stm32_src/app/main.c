@@ -24,7 +24,6 @@ void ext_pm_init(void)
 {
    ext_pm_ctrl_init();
    ext_pm_power_on_all();
-
 }
 
 int main(void)

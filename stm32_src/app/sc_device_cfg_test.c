@@ -14,6 +14,7 @@
 #include "frame_common.h"
 #include "upgrade_from_flash.h"
 #include "env_cfg.h"
+#include "periph/rtt.h"
 
 
 void env_cfg_usage(void)
@@ -74,6 +75,7 @@ int test_set_device_cfg(int argc, char **argv)
 	uint16_t device_id = 0;
 	uint32_t interval = 0;
 	uint16_t threshold = 0;
+	uint32_t timestamp = 0;
 
 	static const struct option long_opts[] = {
 			{ "help", no_argument, NULL, 'h' },
@@ -91,13 +93,14 @@ int test_set_device_cfg(int argc, char **argv)
         return 1;
     }
 
-    while ((opt = getopt_long(argc, argv, "hsi:v:I:t:r", long_opts, NULL))!= -1) {
+    while ((opt = getopt_long(argc, argv, "hT:i:v:I:t:r", long_opts, NULL))!= -1) {
     	switch (opt) {
     	case 'h':
     		env_cfg_usage();
 			break;
-    	case 's':
-    		display_device_cfg();
+    	case 'T':
+    	    timestamp = (uint32_t)atoi(optarg);
+    	    rtt_set_counter(timestamp);
     		break;
     	case 'i':
     		device_id = (uint16_t)atoi(optarg);

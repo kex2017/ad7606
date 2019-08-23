@@ -8,6 +8,7 @@
 #include "board.h"
 #include "daq.h"
 #include "log.h"
+#include "x_delay.h"
 #include "periph/rtt.h"
 #include "kldaq_fpga_spi.h"
 
@@ -31,7 +32,7 @@ void daq_usage_help(void)
    );
 }
 
-static uint8_t g_data_buf[100];
+static uint8_t g_data_buf[1*1024];//1536 * 2
 int daq_command(int argc, char **argv)
 {
     if (argc < 2) {
@@ -74,24 +75,57 @@ int daq_command(int argc, char **argv)
     else if (strncmp(argv[1], "th", 8) == 0) {
         uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
         uint16_t  threshold = (uint16_t)strtol(argv[3], NULL, 10);
-        daq_spi_set_threshold(channel, threshold);
+        daq_spi_set_hf_threshold(channel, threshold);
         LOG_INFO("set pthreshold with channel %d threshold %d!", channel, threshold);
     }
     else if (strncmp(argv[1], "ch", 8) == 0) {
         uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
         uint16_t  changerate = (uint16_t)strtol(argv[3], NULL, 10);
-        daq_spi_set_change_rate(channel, changerate);
+        daq_spi_set_hf_change_rate(channel, changerate);
         LOG_INFO("set  change rate with channel %d threshold %d!", channel, changerate);
     }
     else if (strncmp(argv[1], "rddata", 8) == 0) {
         uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
         uint16_t len = (uint16_t)strtol(argv[3], NULL, 10);
-        daq_spi_sample_data_read(channel, g_data_buf, 0, len);
-        LOG_INFO("Read %d data from fpga", len);
-        for (int i = 0; i < len; i++)
-            printf("%02x ", g_data_buf[i]);
+
+        daq_spi_trigger_sample(channel);
+
+        LOG_INFO("trigger %d channel sample...", channel);
+
+        delay_ms(500);
+
+        if(daq_spi_sample_done_check(channel) > 0){
+
+            LOG_INFO("fpga channel %d sample already done!", channel);
+
+            len = daq_spi_get_data_len(channel);
+
+            LOG_INFO("read data length is :%ld!", len);
+
+            daq_spi_sample_data_read(channel, g_data_buf, 0, len);
+            LOG_INFO("Read %d data from fpga", len);
+            for (int i = 0; i < len / 2; i++){
+                if(i%10 == 0)printf("\r\n");
+                printf("%d ", g_data_buf[i*2] << 8 | g_data_buf[i*2 + 1]);
+            }
+            printf("\r\n");
+
+            daq_spi_clear_data_done_flag(channel);
+
+            LOG_INFO("clear channel %d done flag", channel);
+
+        }
+        else{
+            LOG_INFO("fpga channel %d sample not done yet!", channel);
+        }
     }
     else if (strncmp(argv[1], "test", 6) == 0) {
+        if(!strcmp("A", argv[2]))
+            change_spi_cs_pin(FPGA_A_CS);
+        else if(!strcmp("B", argv[2]))
+            change_spi_cs_pin(FPGA_B_CS);
+        else if(!strcmp("C", argv[2]))
+            change_spi_cs_pin(FPGA_C_CS);
         daq_spi_read_test_reg();
     }
    else {

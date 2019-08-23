@@ -11,6 +11,18 @@ typedef struct gps_t
    int height;
 }GPS;
 
+#define GY25_FRAME_LEN (8)
+#define GY25_FRAME_HEADER 0xAA
+#define GY25_FRAME_ENDER 0x55
+
+typedef struct gy25_t {
+    float course_angle; //航向角
+    float pitch_angle; //俯仰角
+    float roll_angle;  //横滚角
+} GY25;
+
+GY25* get_gy25_dip_angle(void);
+
 int update_rtc_time(int retry_count);
 
 kernel_pid_t gps_service_init(void);

@@ -10,11 +10,103 @@
 #include "thread.h"
 #include "env_cfg.h"
 #include "daq.h"
+#include "periph/uart.h"
+#include "isrpipe.h"
 
 #define GPS_INTERVAL  300U
 #define GPS_GET_TIME_INTERVAL 200U
 #define GPS_GET_COORDINATES_INTERVAL 2U
 #define GPS_RX_BUFSIZE    (512)
+
+
+#define UART_GY25_DEV          UART_DEV(3)
+#define UART_GY25_BAUDRATE     (115200)
+#define GY25_GET_DIP_ANGLE_INTERVAL 2U
+
+
+#define GY25_RX_BUFSIZE    (32)
+static char _rx_buf_mem[GY25_RX_BUFSIZE];
+isrpipe_t uart_gy25_isrpipe = ISRPIPE_INIT(_rx_buf_mem);
+
+uint8_t read_dip_angle_frame[] = {0xA5, 0x51};//查询模式
+uint8_t roll_angle_adjust_frame[] = {0xA5, 0x54};//校正模式， 校正俯仰横滚角 0 度， 需要保持水平时候发送
+uint8_t course_angle_adjust_frame[] = {0xA5, 0x55};//校正模式，校正航向 0 度， 航向任意角度清零
+
+static GY25 gy25;
+
+void gy25_init(void)
+{
+    uart_init(UART_GY25_DEV, UART_GY25_BAUDRATE, (uart_rx_cb_t) isrpipe_write_one, &uart_gy25_isrpipe);
+    NVIC_ClearPendingIRQ(UART4_IRQn);
+    NVIC_DisableIRQ(UART4_IRQn);
+}
+
+int gy25_read(char* buffer, int count)
+{
+   (void) count;
+   return isrpipe_read(&uart_gy25_isrpipe, buffer, GY25_RX_BUFSIZE);
+}
+
+void gy25_enable(void)
+{
+   tsrb_init(&(uart_gy25_isrpipe.tsrb), _rx_buf_mem, GY25_RX_BUFSIZE);
+   NVIC_ClearPendingIRQ(UART4_IRQn);
+   NVIC_EnableIRQ(UART4_IRQn);
+}
+
+void gy25_disable(void)
+{
+   NVIC_ClearPendingIRQ(UART4_IRQn);
+   NVIC_DisableIRQ(UART4_IRQn);
+}
+
+uint8_t parse_dip_angle(GY25 *gy25, char *buf)
+{
+    for(int i = 0; i < GY25_RX_BUFSIZE- GY25_FRAME_LEN; i++){
+        if(GY25_FRAME_HEADER == buf[i] && GY25_FRAME_ENDER == buf[i+GY25_FRAME_LEN-1]){
+            gy25->course_angle = (int16_t)(buf[i + 1] << 8 | buf[i + 2]) / 100.0;
+            gy25->pitch_angle =  (int16_t)(buf[i + 3] << 8 | buf[i + 4]) / 100.0;
+            gy25->roll_angle =   (int16_t)(buf[i + 5] << 8 | buf[i + 6]) / 100.0;
+
+            LOG_INFO("get course_angle as %.2f, pitch_angle as %.2f, roll_angle as %.2f\r\n", \
+                                                                     gy25->course_angle,\
+                                                                     gy25->pitch_angle,\
+                                                                     gy25->roll_angle);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void adjust_course_angle(void)
+{
+    uart_write(UART_GY25_DEV, course_angle_adjust_frame, sizeof(course_angle_adjust_frame));
+}
+
+void adjust_roll_angle(void)
+{
+    uart_write(UART_GY25_DEV, roll_angle_adjust_frame, sizeof(roll_angle_adjust_frame));
+}
+
+void gy25_read_dip_angle(void)
+{
+    char buffer[GY25_RX_BUFSIZE];
+    memset(buffer, 0, GY25_RX_BUFSIZE);
+
+    gy25_enable();
+    uart_write(UART_GY25_DEV, read_dip_angle_frame, sizeof(read_dip_angle_frame));
+    delay_s(GY25_GET_DIP_ANGLE_INTERVAL);
+    gy25_read(buffer, GY25_RX_BUFSIZE);
+    if (!parse_dip_angle(&gy25, buffer)) {
+        LOG_ERROR("parse dip angle error!");
+    }
+    gy25_disable();
+}
+
+GY25* get_gy25_dip_angle(void)
+{
+    return &gy25;
+}
 
 static GPS gps;
 
@@ -141,7 +233,8 @@ void *gps_handler(void *arg)
    (void)arg;
    uint32_t gps_time = 0;
    gps_init();
-
+   gy25_init();
+//   adjust_roll_angle();
    while(!gps_get_time())
    {
        delay_ms(10);
@@ -154,15 +247,18 @@ void *gps_handler(void *arg)
        delay_ms(10);
    }
 
-   while (1)
-   {
-		delay_s(GPS_INTERVAL);
-		while (!gps_get_time()) {
-			delay_ms(10);
-		}
-		gps_time = rtt_get_counter();
-		daq_spi_chan_set_fpga_utc(gps_time);
-	}
+    while (1) {
+        adjust_course_angle();
+        delay_s(GPS_INTERVAL);
+        gy25_read_dip_angle();
+        continue;
+        while (!gps_get_time()) {
+            delay_ms(10);
+        }
+
+        gps_time = rtt_get_counter();
+        daq_spi_chan_set_fpga_utc(gps_time);
+    }
 
    return NULL;
 }

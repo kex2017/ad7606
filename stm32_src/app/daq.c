@@ -7,8 +7,14 @@
 #include "daq.h"
 #include "kldaq.h"
 #include "kldaq_fpga_spi.h"
+#include "mutex.h"
+
+mutex_t fpga_cs_mutex = MUTEX_INIT;
+fpga_cs_t g_cur_fpga_cs;
 
 kldaq_dev_t* g_spi_dev = (kldaq_dev_t*)&fpga_spi_with_ps_cnf_dev;
+
+gpio_t fpga_cs_pin[] = {SPI1_A_CS, SPI1_B_CS, SPI1_C_CS};
 
 void check_spi_fpga_work_status(kldaq_dev_t* dev)
 {
@@ -20,10 +26,22 @@ void check_spi_fpga_work_status(kldaq_dev_t* dev)
     }
 }
 
+void daq_spi_cs_pin_init(void)
+{
+    gpio_init(SPI1_A_CS, GPIO_OUT);
+    gpio_init(SPI1_B_CS, GPIO_OUT);
+    gpio_init(SPI1_C_CS, GPIO_OUT);
+
+    gpio_set(SPI1_A_CS);
+    gpio_set(SPI1_B_CS);
+    gpio_set(SPI1_C_CS);
+}
+
 void daq_init(void)
 {
     kldaq_init(g_spi_dev);
-    check_spi_fpga_work_status(g_spi_dev);
+    daq_spi_cs_pin_init();
+//    check_spi_fpga_work_status(g_spi_dev);
 }
 
 void set_sample_curve_ops(kldaq_dev_t *dev)
@@ -31,6 +49,24 @@ void set_sample_curve_ops(kldaq_dev_t *dev)
     g_spi_dev = dev;
     daq_init();
 }
+#include "x_delay.h"
+void change_spi_cs_pin(fpga_cs_t cs_no)
+{
+    mutex_lock(&fpga_cs_mutex);
+
+//    daq_spi_cs_pin_init();
+    ((fpga_spi_dev_t *)g_spi_dev)->cs_pin = fpga_cs_pin[cs_no];
+    g_cur_fpga_cs = cs_no;
+    delay_ms(200);
+
+    mutex_unlock(&fpga_cs_mutex);
+}
+
+fpga_cs_t get_cur_fpga_cs(void)
+{
+    return g_cur_fpga_cs;
+}
+
 
 /*****************************************************************************
  * SPI FPGA OPS
@@ -54,13 +90,21 @@ int daq_spi_sample_data_read(uint8_t channel, uint8_t *data, uint32_t addr, size
 /**************************************************************************/
 int daq_spi_sample_done_check(uint8_t channel)
 {
-    uint16_t chan_status = daq_spi_read_reg(channel, CHA_STA_REG);
-    return chan_status&(1 << (channel+1));
+    uint16_t chan_status = 0;
+
+    if (channel < 2) {
+        chan_status = daq_spi_read_reg(channel, CHA_STA_REG);
+        return chan_status & (1 << (1));
+    }
+    chan_status = daq_spi_read_reg(channel, LTC_OCR_REG);
+    return chan_status & (1 << (channel-2));
 }
 
 uint16_t daq_spi_get_data_len(uint8_t channel)
 {
-    return daq_spi_read_reg(channel, DAT_LEN_L);
+    if(channel < 2)
+        return daq_spi_read_reg(channel, DAT_LEN_L);
+    return daq_spi_read_reg(channel, LTC_LENGTH_REG);
 }
 
 int daq_spi_get_dat_max(uint8_t channel)
@@ -77,11 +121,17 @@ uint32_t daq_spi_one_sec_clk_cnt(uint8_t chan_no)
 {
     uint32_t clk_cnt = 0;
 
-    if(chan_no == 0){
-        clk_cnt = daq_spi_read_reg(0, CHA0_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(0, CHA0_ONE_SECOND_CNT_L);
+    if(chan_no == HF_CHANNEL_1_NUM){
+        clk_cnt = daq_spi_read_reg(chan_no, CHA0_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(chan_no, CHA0_ONE_SECOND_CNT_L);
     }
-    else if(chan_no == 1){
-        clk_cnt = daq_spi_read_reg(0, CHA1_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(0, CHA1_ONE_SECOND_CNT_L);
+    else if(chan_no == HF_CHANNEL_2_NUM){
+        clk_cnt = daq_spi_read_reg(chan_no, CHA1_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(chan_no, CHA1_ONE_SECOND_CNT_L);
+    }
+    else if(chan_no == PF_CHANNEL_1_NUM){
+        clk_cnt = daq_spi_read_reg(chan_no, CHA2_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(chan_no, CHA2_ONE_SECOND_CNT_L);
+    }
+    else if(chan_no == PF_CHANNEL_2_NUM){
+        clk_cnt = daq_spi_read_reg(chan_no, CHA3_ONE_SECOND_CNT_H) << 16 | daq_spi_read_reg(chan_no, CHA3_ONE_SECOND_CNT_L);
     }
 
     return clk_cnt;
@@ -91,11 +141,18 @@ uint32_t daq_spi_chan_cnt_since_plus(uint8_t chan_no)
 {
     uint32_t chan_cnt = 0;
 
-    if(chan_no == 0){
-        chan_cnt = daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(0, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
+    if (chan_no == HF_CHANNEL_1_NUM){
+        chan_cnt = daq_spi_read_reg(chan_no, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(chan_no, CHA0_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
     }
-    else if(chan_no == 1){
-        chan_cnt = daq_spi_read_reg(1, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(0, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
+    else if(chan_no == HF_CHANNEL_2_NUM){
+        chan_cnt = daq_spi_read_reg(chan_no, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_H) << 16 | daq_spi_read_reg(chan_no, CHA1_CLK_CNT_FROM_ONE_SECOND_PLUS_L);
+    }
+    else if(chan_no == PF_CHANNEL_1_NUM){
+        chan_cnt = daq_spi_read_reg(chan_no, LTC_GP_PLS_CNTA_H) << 16 | daq_spi_read_reg(chan_no, LTC_GP_PLS_CNTA_L);
+    }
+    else if(chan_no == PF_CHANNEL_2_NUM){
+        chan_cnt = daq_spi_read_reg(chan_no, LTC_GP_PLS_CNTB_H) << 16 | daq_spi_read_reg(chan_no, LTC_GP_PLS_CNTB_L);
+
     }
 
     return chan_cnt;
@@ -105,11 +162,17 @@ uint32_t daq_spi_chan_event_utc(uint8_t chan_no)
 {
     uint32_t fpga_utc = 0;
 
-    if(chan_no == 0){
-        fpga_utc = daq_spi_read_reg(0, CHA0_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(0, CHA0_EVENT_UTC_TIME_L);
+    if (chan_no == HF_CHANNEL_1_NUM) {
+        fpga_utc = daq_spi_read_reg(chan_no, CHA0_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(chan_no, CHA0_EVENT_UTC_TIME_L);
     }
-    else if(chan_no == 1){
-        fpga_utc = daq_spi_read_reg(1, CHA1_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(0, CHA1_EVENT_UTC_TIME_L);
+    else if (chan_no == HF_CHANNEL_2_NUM) {
+        fpga_utc = daq_spi_read_reg(chan_no, CHA1_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(chan_no, CHA1_EVENT_UTC_TIME_L);
+    }
+    else if (chan_no == PF_CHANNEL_1_NUM) {
+        fpga_utc = daq_spi_read_reg(chan_no, CHA2_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(chan_no, CHA2_EVENT_UTC_TIME_L);
+    }
+    else if (chan_no == PF_CHANNEL_2_NUM) {
+        fpga_utc = daq_spi_read_reg(chan_no, CHA3_EVENT_UTC_TIME_H) << 16 | daq_spi_read_reg(chan_no, CHA3_EVENT_UTC_TIME_L);
     }
 
     return fpga_utc;
@@ -117,13 +180,16 @@ uint32_t daq_spi_chan_event_utc(uint8_t chan_no)
 
 void daq_spi_chan_set_fpga_utc(uint32_t utc_time)
 {
-    daq_spi_write_reg(0, SET_UTC_TIME_H, (utc_time >> 16) & 0xFFFF);
-    daq_spi_write_reg(0, SET_UTC_TIME_L, utc_time & 0xFFFF);
+    for (uint8_t phase = 0; phase < 3; phase++) {
+        change_spi_cs_pin(phase);
+        daq_spi_write_reg(0, SET_UTC_TIME_H, (utc_time >> 16) & 0xFFFF);
+        daq_spi_write_reg(0, SET_UTC_TIME_L, utc_time & 0xFFFF);
+    }
 }
 
 void daq_spi_read_test_reg(void)
 {
-    uint16_t test_reg_fix = 0x1357;
+    uint16_t test_reg_fix = 5555;
     uint16_t read_value = 0;
 
     read_value = daq_spi_read_reg(0, FPGA_READ_TEST_REG);
@@ -143,24 +209,62 @@ void daq_spi_trigger_sample(uint8_t channel)
 
 int daq_spi_clear_data_done_flag(uint8_t channel)
 {
-    if(channel == 0){
-        daq_spi_write_reg(0, CHA_RUN_REG, 1 << 4);
-    }
-    else if(channel == 1){
-        daq_spi_write_reg(1, CHA_RUN_REG, 1 << 5);
+    switch(channel){
+    case HF_CHANNEL_1_NUM:
+        daq_spi_write_reg(channel, CHA_RUN_REG, 1 << 4);
+        break;
+    case HF_CHANNEL_2_NUM:
+        daq_spi_write_reg(channel, CHA_RUN_REG, 1 << 5);
+        break;
+    case PF_CHANNEL_1_NUM:
+        daq_spi_write_reg(channel, LTC_FINSH_CHB_REG_H, 1 << 0);
+        break;
+    case PF_CHANNEL_2_NUM:
+        daq_spi_write_reg(channel, LTC_FINSH_CHB_REG_H, 1 << 1);
+        break;
+    default:
+        break;
     }
     return 0;
 }
 
-int daq_spi_set_threshold(uint8_t channel, uint16_t threshold)
+int daq_spi_set_hf_threshold(uint8_t channel, uint16_t threshold)
 {
     daq_spi_write_reg(channel, DAT_THR_REG, threshold);
     return 0;
 }
 
-int daq_spi_set_change_rate(uint8_t channel, uint16_t changerate)
+int daq_spi_set_hf_change_rate(uint8_t channel, uint16_t changerate)
 {
     daq_spi_write_reg(channel, CHANGE_RATE_THR, changerate);
+    return 0;
+}
+
+int daq_spi_set_pf_threshold(uint8_t channel, uint64_t  threshold)
+{
+    uint16_t th_l = threshold & 0xFFFF;
+    uint16_t th_m = (threshold >> 16) & 0xFFFF;
+    uint16_t th_h = (threshold >> 32) & 0xFFFF;
+
+    if(channel == PF_CHANNEL_1_NUM){
+        daq_spi_write_reg(channel, LTC_OTH_CHA_REG_L, th_l);
+        daq_spi_write_reg(channel, LTC_OTH_CHA_REG_M, th_m);
+        daq_spi_write_reg(channel, LTC_OTH_CHA_REG_H, th_h);
+    }
+    else if(channel == PF_CHANNEL_2_NUM){
+        daq_spi_write_reg(channel, LTC_OTH_CHB_REG_L, th_l);
+        daq_spi_write_reg(channel, LTC_OTH_CHB_REG_M, th_m);
+        daq_spi_write_reg(channel, LTC_OTH_CHB_REG_H, th_h);
+    }
+    return 0;
+}
+
+uint64_t daq_spi_get_pf_sum_data(uint8_t channel)
+{
+    if(channel == PF_CHANNEL_1_NUM)
+        return (uint64_t)(daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_H)) << 32 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_M) << 16 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_L);
+    else if(channel == PF_CHANNEL_2_NUM)
+        return (uint64_t)(daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_H)) << 32 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_M) << 16 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_L);
     return 0;
 }
 

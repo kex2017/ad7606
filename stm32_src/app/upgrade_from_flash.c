@@ -17,6 +17,9 @@
 #include "timex.h"
 #include "xtimer.h"
 
+#include "fatfs/ff.h"
+#include "hashes/md5.h"
+
 #define ENV_DEVICE_START_BASE_ADDR    0x08078800  //34k
 #define ENV_START_BASE_ADDR           0x08078000  //32k
 #define PROGRAM_FPGA_BASE_ADDR        0x08050000  //160k
@@ -26,7 +29,7 @@
 #define FLAG_CLEAR    0x12121200
 #define FLAG_SET      0x21212100
 
-
+const char *g_std_spi_fpga = "GZDW.bin";
 static uint32_t g_last_write_addr = 0x0;
 uint32_t g_file_len = 0;
 static uint32_t g_cur_index = 0;
@@ -221,4 +224,67 @@ void flash_set_app_to_run(uint8_t type)
     }
 }
 
+
+void download_fpga_image(uint8_t fpga_no)
+{
+    FRESULT result;
+    FATFS fs;
+    FIL file;
+    DIR DirInf;
+    uint32_t bw;
+    unsigned char buf[512];
+    int i;
+    char *f_name = NULL;
+
+    printf("start download fpga %d image\r\n", fpga_no);
+    set_fpga_no(fpga_no);
+    f_name = (char*) g_std_spi_fpga;
+    /* 挂载文件系统 */
+    result = f_mount(&fs, "", 1); /* Mount a logical drive */
+    if (result != FR_OK) {
+        LOG_ERROR("FileSystem Mounted Failed (%d)", result);
+    }
+    /* 打开根文件夹 */
+    result = f_opendir(&DirInf, "0:/"); /* 如果不带参数，则从当前目录开始 */
+    if (result != FR_OK) {
+        LOG_ERROR("Root Directory is Open Error (%d)", result);
+        return;
+    } else {
+        LOG_DEBUG("Root Directory is Open OK");
+    }
+
+    /* 打开文件 */
+    result = f_open(&file, f_name, FA_OPEN_EXISTING | FA_READ);
+    if (result != FR_OK) {
+        LOG_ERROR("Don't Find File: %s", f_name);
+        return;
+    } else {
+        LOG_INFO("Open File OK.");
+    }
+    /* 读取文件 */
+//static int cur = 0;
+    for (i = 0;; i++) {
+        result = f_read(&file, &buf, sizeof(buf), (UINT*) &bw);
+        if (result || bw == 0) {
+            LOG_INFO("read data from file ok!\r\n");
+//            LOG_ERROR("Error: %d:%ld", result, bw);
+            break;
+        } else {
+//            printf("cur download place is %ld num is %d\r\n", bw, ++cur);
+            // !i == 1, first flag is true, otherwise, false.
+            if (Config_FPGA(bw, buf, !i)) {
+                LOG_ERROR("Download PFGA FAIL %d", i);
+                break;
+            }
+        }
+    }
+
+    /* 关闭文件*/
+    f_close(&file);
+
+    /* 卸载文件系统 */
+    f_mount(0, "", 1);
+
+    LOG_INFO("config FPGA %d image result: %s.\r\n", fpga_no, !is_fpga_microcode_work_no_ok() ? "OK!" : "NOK!");
+}
 

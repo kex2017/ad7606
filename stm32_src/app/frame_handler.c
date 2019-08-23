@@ -4,15 +4,14 @@
 #include "log.h"
 #include "frame_encode.h"
 #include "frame_common.h"
-#include "internal_ad_sample.h"
 #include "upgrade_from_flash.h"
 #include "app_upgrade.h"
 #include "data_transfer.h"
-#include "over_current.h"
 #include "periph/rtt.h"
 #include "ec20_at.h"
 #include "env_cfg.h"
 #include "data_send.h"
+#include "hf_over_current.h"
 #include "periph/pm.h"
 #include "type_alias.h"
 #include "x_delay.h"
@@ -94,11 +93,11 @@ void set_chennel_info_by_type(channel_info_t *channel_info)
 		channel_info->channel = channel_info->channel - 2;
 		cfg_set_high_device_threshold(channel_info->channel,
 									  channel_info->threshold);
-		set_over_current_threshold(channel_info->channel,
+		set_hf_over_current_threshold(channel_info->channel,
 								   channel_info->threshold);
 		cfg_set_high_device_changerate(channel_info->channel,
 									   channel_info->change_rate);
-		set_over_current_changerate(channel_info->channel,
+		set_hf_over_current_changerate(channel_info->channel,
 									channel_info->change_rate);
 	}
 	else
@@ -107,8 +106,7 @@ void set_chennel_info_by_type(channel_info_t *channel_info)
 								 channel_info->threshold);
 		cfg_set_device_changerate(channel_info->channel,
 								  channel_info->change_rate);
-		pf_set_threshold(channel_info->channel,
-						 channel_info->threshold);
+        set_pf_over_current_threshold(channel_info->channel, channel_info->threshold);
 	}
 }
 
@@ -163,20 +161,16 @@ void request_data_hook(kernel_pid_t pid)
 
 void server_request_data_handler(frame_req_t *frame_req)
 {
-	msg_t msg;
-	if (frame_req->frame_req.requset_data.type)
-	{
-	    trigger_sample_over_current_by_hand();
-		pf_general_call_waveform();
-	}
-	else
-	{
-		msg.type = PERIOD_DATA_TYPE;
-		msg.content.value = SEND_CALL;
-		msg_send(&msg, data_send_pid);
-		delay_s(1);
-		pf_general_call_rms();
-	}
+    msg_t msg;
+    if (frame_req->frame_req.requset_data.type) {//召唤波形
+        trigger_sample_hf_over_current_by_hand();
+        trigger_sample_pf_over_current_by_hand();
+    }
+    else {                                       //召唤有效值
+        msg.type = PERIOD_DATA_TYPE;
+        msg.content.value = SEND_CALL;
+        msg_send(&msg, data_send_pid);
+    }
 }
 
 void upload_file_req_handler(frame_req_t *frame_req)

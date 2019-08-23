@@ -151,7 +151,7 @@ kernel_pid_t data_transfer_init(void)
         data_transfer_pid = thread_create(data_transfer_stack,
                 sizeof(data_transfer_stack),
                 DATA_TRANSFER_PRIO, THREAD_CREATE_STACKTEST,
-                data_transfer_service, NULL, "data transfer service");
+                data_transfer_service, NULL, "data transfer serv");
     }
     return data_transfer_pid;
 }

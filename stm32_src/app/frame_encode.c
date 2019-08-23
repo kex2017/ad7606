@@ -123,7 +123,7 @@ uint16_t frame_get_running_state_encode(uint8_t *data, uint8_t errorcode, uint32
 	return index;
 }
 
-uint16_t 	frame_channel_info_encode(uint8_t *data, uint8_t errorcode, channel_info_t* channel_info)
+uint16_t frame_channel_info_encode(uint8_t *data, uint8_t errorcode, channel_info_t* channel_info)
 {
 	uint16_t index = 0;
 
@@ -180,14 +180,30 @@ uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t sen
     index += frame_uint32_encode(data + index, timestamp);
     index += frame_uint8_encode(data + index, channel_count);
     index += frame_uint8_encode(data + index, channel_1);
-    index += frame_uint32_encode(data + index, ch1_current);
+    index += frame_float_encode(data + index, ch1_current);
     index += frame_uint8_encode(data + index, channel_2);
-    index += frame_uint32_encode(data + index, ch2_current);
+    index += frame_float_encode(data + index, ch2_current);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
     return index;
 }
 
+uint16_t dip_angle_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint32_t timestamp, float course_angle, float pitch_angle, float roll_angle)
+{
+    uint16_t index = 0;
+
+    index += frame_header_encode(data + index, cfg_get_device_id(), DIP_ANGLE_CYCLE_RSP_DATA_LEN);
+    index += frame_uint8_encode(data+index, DIP_ANGLE_CYCLE_RSP);
+    index += frame_uint8_encode(data + index, errorcode);
+    index += frame_uint32_encode(data + index, timestamp);
+
+    index += frame_float_encode(data + index, course_angle);
+    index += frame_float_encode(data + index, pitch_angle);
+    index += frame_float_encode(data + index, roll_angle);
+    index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
+
+    return index;
+}
 
 uint16_t current_mutation_data_encode(uint8_t * data,  uint8_t errorcode, uint8_t send_type, uint32_t timestamp, uint32_t one_sec_clk_cnt, uint32_t ns_clk_num, uint8_t channel, uint16_t pkg_sum, uint16_t pkg_index, uint8_t * cur_data, uint16_t len )
 {

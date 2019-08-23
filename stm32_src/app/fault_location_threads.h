@@ -12,7 +12,9 @@
 
 #define DATA_SEND_PRIORITY  (9)
 
-#define OVER_CURRENT_PRIO   (6)
+#define HF_OVER_CURRENT_PRIO (6)
+
+#define PF_OVER_CURRENT_PRIO (7)
 
 #define PERIOD_DATA_PRIORITY  (11)
 

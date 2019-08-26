@@ -121,12 +121,13 @@ int daq_command(int argc, char **argv)
     }
     else if (strncmp(argv[1], "test", 6) == 0) {
         if(!strcmp("A", argv[2]))
-            change_spi_cs_pin(FPGA_A_CS);
+            change_spi_cs_pin_acquire(FPGA_A_CS);
         else if(!strcmp("B", argv[2]))
-            change_spi_cs_pin(FPGA_B_CS);
+            change_spi_cs_pin_acquire(FPGA_B_CS);
         else if(!strcmp("C", argv[2]))
-            change_spi_cs_pin(FPGA_C_CS);
+            change_spi_cs_pin_acquire(FPGA_C_CS);
         daq_spi_read_test_reg();
+        change_spi_cs_pin_release();
     }
    else {
       daq_usage_help();

@@ -8,6 +8,7 @@
 #include "kldaq.h"
 #include "kldaq_fpga_spi.h"
 #include "mutex.h"
+#include "x_delay.h"
 
 mutex_t fpga_cs_mutex = MUTEX_INIT;
 fpga_cs_t g_cur_fpga_cs;
@@ -49,16 +50,19 @@ void set_sample_curve_ops(kldaq_dev_t *dev)
     g_spi_dev = dev;
     daq_init();
 }
-#include "x_delay.h"
-void change_spi_cs_pin(fpga_cs_t cs_no)
+
+
+void change_spi_cs_pin_acquire(fpga_cs_t cs_no)
 {
     mutex_lock(&fpga_cs_mutex);
 
-//    daq_spi_cs_pin_init();
     ((fpga_spi_dev_t *)g_spi_dev)->cs_pin = fpga_cs_pin[cs_no];
     g_cur_fpga_cs = cs_no;
     delay_ms(200);
+}
 
+void change_spi_cs_pin_release(void)
+{
     mutex_unlock(&fpga_cs_mutex);
 }
 
@@ -181,9 +185,10 @@ uint32_t daq_spi_chan_event_utc(uint8_t chan_no)
 void daq_spi_chan_set_fpga_utc(uint32_t utc_time)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         daq_spi_write_reg(0, SET_UTC_TIME_H, (utc_time >> 16) & 0xFFFF);
         daq_spi_write_reg(0, SET_UTC_TIME_L, utc_time & 0xFFFF);
+        change_spi_cs_pin_release();
     }
 }
 

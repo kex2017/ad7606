@@ -28,7 +28,7 @@ void send_high_current_cycle_data(uint8_t send_type)
     uint32_t hf_cur[MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         for (uint8_t channel = 0; channel < MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             hf_cur[channel] = get_hf_over_current_max(channel);
             LOG_INFO("hf cur phase %d channel[%d]: %ld", phase, channel, hf_cur[channel]);
@@ -37,6 +37,7 @@ void send_high_current_cycle_data(uint8_t send_type)
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_HF_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0 + cur_fpga_phase*4,
                                         hf_cur[0], HF_CHAN_1 + cur_fpga_phase * 4, hf_cur[1], rtt_get_counter());
         msg_send_pack(data, len);
+        change_spi_cs_pin_release();
     }
 }
 
@@ -48,7 +49,7 @@ void send_pf_current_cycle_data(uint8_t send_type)
     float pf_cur[MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         for (uint8_t channel = PF_CHANNEL_OFFSET; channel < PF_CHANNEL_OFFSET + MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             pf_cur[channel - PF_CHANNEL_OFFSET] = get_pf_over_current_rms(channel);
             LOG_INFO("pf cur phase %d channel[%d]: %f", phase, channel, pf_cur[channel-PF_CHANNEL_OFFSET]);
@@ -57,6 +58,7 @@ void send_pf_current_cycle_data(uint8_t send_type)
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_PF_OVER_CURRENT_CHANNEL_COUNT, PF_CHAN_0 + cur_fpga_phase*4,
                                         pf_cur[0], PF_CHAN_1 + cur_fpga_phase*4, pf_cur[1], rtt_get_counter());
         msg_send_pack(data, len);
+        change_spi_cs_pin_release();
     }
 }
 

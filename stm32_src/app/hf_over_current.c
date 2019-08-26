@@ -55,9 +55,10 @@ hf_over_current_data_t g_hf_over_current_data = {0};
 void set_hf_over_current_threshold(uint8_t channel, uint16_t threshold)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         daq_spi_set_hf_threshold(channel, threshold);
         g_hf_over_current_info[channel].threshold = threshold;
+        change_spi_cs_pin_release();
     }
 //    cfg_set_device_threshold(channel+2, threshold);
 }
@@ -65,9 +66,10 @@ void set_hf_over_current_threshold(uint8_t channel, uint16_t threshold)
 void set_hf_over_current_changerate(uint8_t channel, uint16_t changerate)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         daq_spi_set_hf_change_rate(channel, changerate);
         g_hf_over_current_info[channel].change_rate = changerate;
+        change_spi_cs_pin_release();
     }
 //    cfg_set_device_changerate(channel+2, changerate);
 }
@@ -123,10 +125,11 @@ void clear_hf_over_current_sample_done_flag(uint8_t channel)
 void trigger_sample_hf_over_current_by_hand(void)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         for (uint8_t channel = 0; channel < MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             daq_spi_trigger_sample(channel);
         }
+        change_spi_cs_pin_release();
     }
     set_server_call_flag(HF_DATA);
 }
@@ -172,7 +175,7 @@ static void *hf_over_current_event_service(void *arg)
     while (1) {
         send_type = get_send_type(HF_DATA);
         for (uint8_t phase = 0; phase < 3; phase++) {
-            change_spi_cs_pin(phase);
+            change_spi_cs_pin_acquire(phase);
             for (channel = 0; channel < MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (0 < check_hf_over_current_sample_done(channel)) {
                     if ((length = read_hf_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
@@ -204,6 +207,7 @@ static void *hf_over_current_event_service(void *arg)
                     clear_hf_over_current_sample_done_flag(channel);
                 }
             }
+            change_spi_cs_pin_release();
         }
         delay_ms(200);
     }

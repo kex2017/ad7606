@@ -25,9 +25,10 @@ pf_over_current_data_t g_pf_over_current_data = {0};
 void set_pf_over_current_threshold(uint8_t channel, uint16_t threshold)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         daq_spi_set_pf_threshold(channel, threshold * threshold * 512);
         g_pf_over_current_info[channel].threshold = threshold;
+        change_spi_cs_pin_release();
     }
 //    cfg_set_device_threshold(channel+2, threshold);
 }
@@ -83,10 +84,11 @@ void clear_pf_over_current_sample_done_flag(uint8_t channel)
 void trigger_sample_pf_over_current_by_hand(void)
 {
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         for (uint8_t channel = PF_CHANNEL_OFFSET; channel < PF_CHANNEL_OFFSET + MAX_PF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             daq_spi_trigger_sample(channel);
         }
+        change_spi_cs_pin_release();
     }
     set_server_call_flag(PF_DATA);
 }
@@ -96,12 +98,13 @@ void set_pf_default_threshold(void)
     uint16_t default_threshold = 200;
 
     for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
+        change_spi_cs_pin_acquire(phase);
         for (int channel = PF_CHANNEL_OFFSET; channel < PF_CHANNEL_OFFSET + MAX_PF_OVER_CURRENT_CHANNEL_COUNT;
                         channel++) {
             set_pf_over_current_threshold(channel, default_threshold);
             LOG_INFO("Set pf over current threshold for Channel %d: %d", channel, default_threshold);
         }
+    change_spi_cs_pin_release();
     }
 }
 
@@ -117,7 +120,7 @@ static void *pf_over_current_event_service(void *arg)
     while (1) {
         send_type = get_send_type(PF_DATA);
         for (uint8_t phase = 0; phase < 3; phase++) {
-            change_spi_cs_pin(phase);
+            change_spi_cs_pin_acquire(phase);
             for (channel = PF_CHANNEL_OFFSET; channel < PF_CHANNEL_OFFSET + MAX_PF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (0 < check_pf_over_current_sample_done(channel)) {
                     if ((length = read_pf_over_current_sample_length(channel)) > MAX_PF_FPGA_DATA_LEN) {
@@ -150,6 +153,7 @@ static void *pf_over_current_event_service(void *arg)
                     clear_pf_over_current_sample_done_flag(channel);
                 }
             }
+            change_spi_cs_pin_release();
         }
         delay_ms(200);
     }

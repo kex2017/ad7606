@@ -10,7 +10,7 @@
 
 #include "env_cfg.h"
 
-int test_set_device_cfg(int argc, char **argv);
+int set_device_cfg(int argc, char **argv);
 int printenv_command(int argc, char **argv);
 int send_command(int argc, char **argv);
 

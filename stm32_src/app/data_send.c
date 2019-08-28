@@ -90,12 +90,13 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     uint8_t pk_data[PACKET_DATA_LEN] = {0};
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;
+    uint8_t logic_channal = 0;
     uint32_t timestamp = over_current_data->timestamp;
 
     if(HF_TYPE == over_current_data->data_type)
-        channel = over_current_data->phase * 4 + channel + 2;//hf A:2,3 B:6,7 C:10,11
+        logic_channal = over_current_data->phase * 4 + channel + 2;//hf A:2,3 B:6,7 C:10,11
     else
-        channel = over_current_data->phase * 4 + channel - 2;//pf A:0,1 B:4,5 C:6,7
+        logic_channal = over_current_data->phase * 4 + channel - 2;//pf A:0,1 B:4,5 C:6,7
 
     pkg_num = over_current_data->curve_len / PACKET_DATA_LEN;
     if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {
@@ -106,15 +107,15 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
             memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, left_data_len);
-            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
                                                     pk_data, left_data_len);
         }
         else {
             memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
-            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, channel, pkg_num, i,
+            len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
                                                     pk_data, PACKET_DATA_LEN);
         }
-        LOG_INFO("send over current curve data channel %d pkg num is %d cur pkg num is %d", channel, pkg_num, i);
+        LOG_INFO("send over current %s curve data phase %s channel %d pkg num is %d cur pkg num is %d", (over_current_data->data_type==HF_TYPE)?"hf":"pf", (over_current_data->phase==0)?"A":(over_current_data->phase==1)?"B":"C", channel, pkg_num, i);
         msg_send_pack(data, len);
         delay_ms(600);
     }

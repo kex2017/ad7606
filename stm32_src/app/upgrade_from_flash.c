@@ -236,8 +236,8 @@ void download_fpga_image(uint8_t fpga_no)
     int i;
     char *f_name = NULL;
 
-    printf("start download fpga %d image\r\n", fpga_no);
-    set_fpga_no(fpga_no);
+    printf("start download fpga %s image\r\n", (fpga_no==0)?"A":(fpga_no==1)?"B":"C");
+    set_cur_ctr_fpga_no(fpga_no);
     f_name = (char*) g_std_spi_fpga;
     /* 挂载文件系统 */
     result = f_mount(&fs, "", 1); /* Mount a logical drive */
@@ -285,6 +285,6 @@ void download_fpga_image(uint8_t fpga_no)
     /* 卸载文件系统 */
     f_mount(0, "", 1);
 
-    LOG_INFO("config FPGA %d image result: %s.\r\n", fpga_no, !is_fpga_microcode_work_no_ok() ? "OK!" : "NOK!");
+    LOG_INFO("config FPGA %s image result: %s.\r\n", (fpga_no==0)?"A":(fpga_no==1)?"B":"C", !is_fpga_microcode_work_no_ok() ? "OK!" : "NOK!");
 }
 

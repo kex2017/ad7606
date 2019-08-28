@@ -36,7 +36,7 @@ void env_cfg_usage(void)
 	printf("\t\t reboot system\r\n");
 }
 
-void test_set_device_id(uint16_t device_id)
+void set_device_id(uint16_t device_id)
 {
 	printf("Try to set device_id = %d.\r\n", device_id);
 	if(cfg_get_device_id()!= device_id)
@@ -46,30 +46,31 @@ void test_set_device_id(uint16_t device_id)
 	}
 }
 
-void test_set_device_data_interval(uint32_t interval)
+void set_device_data_interval(uint32_t interval)
 {
 	printf("Try to set data interval = %ld.\r\n", interval);
 	cfg_set_device_data_interval(interval);
 	update_device_cfg();
 }
 
-void test_set_device_threshold(uint16_t threshold)
+void set_device_pf_threshold(uint16_t threshold)
 {
 	printf("Try to set threshold = %d\r\n",threshold);
-	for(int i = 0; i < 0; i++)
+	for(int i = 0; i < 2; i++)
 	{
 		cfg_set_device_threshold(i,threshold);
-		cfg_set_high_device_threshold(i,threshold);
 	}
 }
-
-void test_reboot(void)
+void set_device_hf_threshold(uint16_t threshold)
 {
-	printf("Try to reboot system now!\r\n");
-	soft_reset();
+    printf("Try to set threshold = %d\r\n",threshold);
+    for(int i = 0; i < 2; i++)
+    {
+        cfg_set_high_device_threshold(i,threshold);
+    }
 }
 
-int test_set_device_cfg(int argc, char **argv)
+int set_device_cfg(int argc, char **argv)
 {
 	int opt = 0;
 	uint16_t device_id = 0;
@@ -81,9 +82,9 @@ int test_set_device_cfg(int argc, char **argv)
 			{ "help", no_argument, NULL, 'h' },
 			{ "show", no_argument, NULL, 's' },
 			{ "id", required_argument, NULL, 'i' },
-			{ "version", required_argument, NULL, 'v' },
 			{ "Interval", required_argument, NULL, 'I' },
-			{ "threshold", required_argument, NULL, 't' },
+			{ "pfthreshold", required_argument, NULL, 'P' },
+			{ "hfthreshold", required_argument, NULL, 'H' },
 			{ "reboot", no_argument, NULL, 'r' },
 			{ NULL, 0, NULL, 0 },
 	};
@@ -93,34 +94,31 @@ int test_set_device_cfg(int argc, char **argv)
         return 1;
     }
 
-    while ((opt = getopt_long(argc, argv, "hT:i:v:I:t:r", long_opts, NULL))!= -1) {
+    while ((opt = getopt_long(argc, argv, "ht:i:I:P:H:", long_opts, NULL))!= -1) {
     	switch (opt) {
     	case 'h':
     		env_cfg_usage();
 			break;
-    	case 'T':
+    	case 't':
     	    timestamp = (uint32_t)atoi(optarg);
     	    rtt_set_counter(timestamp);
     		break;
     	case 'i':
     		device_id = (uint16_t)atoi(optarg);
-			test_set_device_id(device_id);
+			set_device_id(device_id);
     		break;
-    	case 'v':
-			cfg_set_device_version(optarg);
-			update_device_cfg();
-			break;
     	case 'I':
     		interval = (uint32_t)atoi(optarg);
-			test_set_device_data_interval(interval);
+			set_device_data_interval(interval);
     		break;
-    	case 'r':
-    		test_reboot();
-    		break;
-    	case 't':
+    	case 'P':
     		threshold = (uint16_t)atoi(optarg);
-    		test_set_device_threshold(threshold);
+    		set_device_pf_threshold(threshold);
     		break;
+        case 'H':
+            threshold = (uint16_t)atoi(optarg);
+            set_device_hf_threshold(threshold);
+            break;
     	default:
 			if (!optarg) {
 				printf("optarg is NULL\r\n");

@@ -32,7 +32,6 @@ void *period_data_serv(void *arg)
         interval_time = (interval_time < 30) ? 30 : interval_time;
         delay_s(interval_time);
         msg_send(&msg, data_send_pid);
-//        pray_periodic_task();
     }
 }
 

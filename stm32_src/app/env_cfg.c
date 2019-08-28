@@ -15,7 +15,7 @@
 #include "periph/flashpage.h"
 
 enum{
-    FLAG_ON = 0x212100,
+    FLAG_ON = 0x212101,
     FLAG_OFF = 0x121201
 };
 
@@ -199,7 +199,7 @@ void load_device_cfg(void)
 	};
 
 	for (i = 0; i < MAX_CHANNEL; i++) {
-		device_cfg.channel_threshold[i] = DEFAULT_THRESHOLD;
+		device_cfg.channel_threshold[i] = 40000;
 		device_cfg.change_rate[i] = DATA_CHANGE_RATE;
 		device_cfg.calibration_info[i].k = 1;
 		device_cfg.calibration_info[i].b = 0;
@@ -216,7 +216,9 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
-	if (g_device_cfg.device_cfg.flag == FLAG_OFF) {
+	memcpy(g_device_cfg.device_cfg.version, GIT_VERSION, strlen(GIT_VERSION));
+
+	if (g_device_cfg.device_cfg.flag != FLAG_ON) {
 		g_device_cfg.device_cfg = device_cfg;
 		update_device_cfg();
 	}
@@ -235,17 +237,18 @@ void display_device_cfg(void)
 {
 	printf("\r\n******************************************************\r\n");
 	printf("Fault Partition device configuration:\r\n");
+	printf("cfg flag :%s\r\n", (g_device_cfg.device_cfg.flag == FLAG_ON)?"FLAG_ON":"FLAG_OFF");
 	printf("\tdevice_id: %d\r\n", g_device_cfg.device_cfg.device_id);
 	printf("\tversion: %s\r\n", g_device_cfg.device_cfg.version);
 	printf("\tinterval: %ds\r\n", g_device_cfg.device_cfg.data_interval);
-	printf("\tthreshold0: %d\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
-	printf("\tthreshold1: %d\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
-	printf("\thigh_threshold0: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[0]);
-	printf("\thigh_threshold1: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[1]);
-	printf("\tchange_rete0: %d\r\n", g_device_cfg.device_cfg.change_rate[0]);
-	printf("\tchange_rete1: %d\r\n", g_device_cfg.device_cfg.change_rate[1]);
-	printf("\thigh_change_rete0: %d\r\n", g_device_cfg.device_cfg.high_change_rate[0]);
-	printf("\thigh_change_rete1: %d\r\n", g_device_cfg.device_cfg.high_change_rate[1]);
+	printf("\tpf threshold0: %d\r\n", g_device_cfg.device_cfg.channel_threshold[0]);
+	printf("\tpf threshold1: %d\r\n", g_device_cfg.device_cfg.channel_threshold[1]);
+	printf("\thf threshold0: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[0]);
+	printf("\thf threshold1: %d\r\n", g_device_cfg.device_cfg.high_channel_threshold[1]);
+	printf("\tpf change_rete0: %d\r\n", g_device_cfg.device_cfg.change_rate[0]);
+	printf("\tpf change_rete1: %d\r\n", g_device_cfg.device_cfg.change_rate[1]);
+	printf("\thf change_rete0: %d\r\n", g_device_cfg.device_cfg.high_change_rate[0]);
+	printf("\thf change_rete1: %d\r\n", g_device_cfg.device_cfg.high_change_rate[1]);
 	printf("******************************************************\r\n");
 }
 

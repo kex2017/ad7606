@@ -226,10 +226,10 @@ float get_pf_rms(uint8_t phase, uint8_t channel)
 void set_default_threshold_rate(void)
 {
 
-    uint16_t pf_default_threshold[2] = {40000, 40000};
+    uint16_t pf_default_threshold[2] = {cfg_get_device_channel_threshold(0), cfg_get_device_channel_threshold(1)};
 
-    uint16_t hf_default_threshold[2] = { 200, 200 }; //cfg_get_device_high_channel_threshold(channel)
-    uint16_t hf_default_changerate[2] = { 4095, 4095 }; //cfg_get_device_high_channel_changerate(channel)cfg_get_device_high_channel_changerate(channel)
+    uint16_t hf_default_threshold[2] = { cfg_get_device_high_channel_threshold(0),  cfg_get_device_high_channel_threshold(1)};//200 //cfg_get_device_high_channel_threshold(channel)
+    uint16_t hf_default_changerate[2] = { cfg_get_device_high_channel_changerate(0), cfg_get_device_high_channel_changerate(1) }; //cfg_get_device_high_channel_changerate(channel)cfg_get_device_high_channel_changerate(channel)
 
     for (uint8_t phase = 0; phase < 3; phase++) {
         change_spi_cs_pin(phase);
@@ -238,11 +238,11 @@ void set_default_threshold_rate(void)
             if (channel < 2) {
                 set_hf_over_current_threshold(channel, hf_default_threshold[channel]);
                 set_hf_over_current_changerate(channel, hf_default_changerate[channel]);
-                LOG_INFO("Set hf over current threshold and changerate for phase %d Channel %d: %d ,%d", phase, channel, hf_default_threshold[channel], hf_default_changerate[channel]);
+                LOG_INFO("Set hf over current threshold and changerate for phase %s Channel %d: %d ,%d", (phase==0)?"A":(phase==1)?"B":"C", channel, hf_default_threshold[channel], hf_default_changerate[channel]);
             }
             else{
                 set_pf_over_current_threshold(channel, pf_default_threshold[channel - 2]);
-                LOG_INFO("Set pf over current threshold for phase %d Channel %d: %d", phase, channel, pf_default_threshold[channel - 2]);
+                LOG_INFO("Set pf over current threshold for phase %s Channel %d: %d", (phase==0)?"A":(phase==1)?"B":"C", channel, pf_default_threshold[channel - 2]);
             }
         }
     }
@@ -288,10 +288,10 @@ static void *hf_pf_over_current_event_service(void *arg)
                     printf("\r\n");
 
 
-                    LOG_INFO("phase %d channel %d utc reg value %d", phase, channel, g_over_current_data.timestamp);
-                    LOG_INFO("phase %d channel %d cnt_since_plus reg value %d", phase, channel, g_over_current_data.ns_cnt);
-                    LOG_INFO("phase %d channel %d one_sec_clk_cnt reg value %d", phase, channel, g_over_current_data.one_sec_clk_cnt);
-                    LOG_INFO("phase %d channel %d length is %d ns cnt is %ld", phase, channel, length, g_over_current_data.ns_cnt);
+                    LOG_INFO("phase %s channel %d utc reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.timestamp);
+                    LOG_INFO("phase %s channel %d cnt_since_plus reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.ns_cnt);
+                    LOG_INFO("phase %s channel %d one_sec_clk_cnt reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.one_sec_clk_cnt);
+                    LOG_INFO("phase %s channel %d length is %d ns cnt is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, length, g_over_current_data.ns_cnt);
 #endif
                     send_over_current_curve(&g_over_current_data, channel, send_type);
                     memset(&g_over_current_data, 0, sizeof(over_current_data_t));

@@ -14,7 +14,7 @@
 #include "over_current.h"
 
 static const shell_command_t shell_commands[] = {
-		{ "setenv", "set device cfg", test_set_device_cfg},
+		{ "setenv", "set device cfg", set_device_cfg},
         { "daq", "daq ops", daq_command},
 		{ "printenv", "print env", printenv_command },
     { NULL, NULL, NULL }
@@ -26,10 +26,6 @@ void ext_pm_init(void)
    ext_pm_power_on_all();
 }
 
-#include "periph/gpio.h"
-//#define SPI1_A_CS             GPIO_PIN(PORT_E, 9) //addr:0x40011809
-//#define SPI1_B_CS             GPIO_PIN(PORT_G, 2) //addr:0x40012002
-//#define SPI1_C_CS             GPIO_PIN(PORT_C, 7) //addr:0x40011007
 int main(void)
 {
 	ext_pm_init();
@@ -41,7 +37,6 @@ int main(void)
 	delay_s(5);
 
 	load_device_cfg();
-
 
 	gps_service_init();
 

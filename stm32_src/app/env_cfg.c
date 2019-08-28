@@ -216,6 +216,7 @@ void load_device_cfg(void)
 	page = get_device_cfg_flash_page_addr();
 	flashpage_read(page, g_device_cfg.env_buf);
 
+	memset(g_device_cfg.device_cfg.version, 0, sizeof(g_device_cfg.device_cfg.version));
 	memcpy(g_device_cfg.device_cfg.version, GIT_VERSION, strlen(GIT_VERSION));
 
 	if (g_device_cfg.device_cfg.flag != FLAG_ON) {

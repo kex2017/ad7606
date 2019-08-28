@@ -101,7 +101,7 @@ typedef enum{
 #define CHANGE_RATE_THR 6
 #define TRIGGER_REG 7
 
-void change_spi_cs_pin_acquire(fpga_cs_t cs_no);
+void change_spi_cs_pin(fpga_cs_t cs_no);
 void change_spi_cs_pin_release(void);
 fpga_cs_t get_cur_fpga_cs(void);
 

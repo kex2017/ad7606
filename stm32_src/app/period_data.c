@@ -10,7 +10,7 @@
 #include "type_alias.h"
 #include "periph/rtt.h"
 #include "data_send.h"
-#include "hf_over_current.h"
+#include "over_current.h"
 
 static kernel_pid_t data_send_pid;
 

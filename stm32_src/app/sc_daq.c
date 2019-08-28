@@ -85,9 +85,9 @@ int daq_command(int argc, char **argv)
         LOG_INFO("set  change rate with channel %d threshold %d!", channel, changerate);
     }
     else if (strncmp(argv[1], "rddata", 8) == 0) {
-        uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
-        uint16_t len = (uint16_t)strtol(argv[3], NULL, 10);
-
+        uint8_t phase = (uint8_t)strtol(argv[2], NULL, 10);
+        uint8_t  channel = (uint8_t)strtol(argv[3], NULL, 10);
+        change_spi_cs_pin(phase);
         daq_spi_trigger_sample(channel);
 
         LOG_INFO("trigger %d channel sample...", channel);
@@ -98,7 +98,7 @@ int daq_command(int argc, char **argv)
 
             LOG_INFO("fpga channel %d sample already done!", channel);
 
-            len = daq_spi_get_data_len(channel);
+            uint16_t len = daq_spi_get_data_len(channel);
 
             LOG_INFO("read data length is :%ld!", len);
 
@@ -121,13 +121,13 @@ int daq_command(int argc, char **argv)
     }
     else if (strncmp(argv[1], "test", 6) == 0) {
         if(!strcmp("A", argv[2]))
-            change_spi_cs_pin_acquire(FPGA_A_CS);
+            change_spi_cs_pin(FPGA_A_CS);
         else if(!strcmp("B", argv[2]))
-            change_spi_cs_pin_acquire(FPGA_B_CS);
+            change_spi_cs_pin(FPGA_B_CS);
         else if(!strcmp("C", argv[2]))
-            change_spi_cs_pin_acquire(FPGA_C_CS);
+            change_spi_cs_pin(FPGA_C_CS);
+        LOG_INFO("change fpga cs pin to %s OK", argv[2]);
         daq_spi_read_test_reg();
-        change_spi_cs_pin_release();
     }
    else {
       daq_usage_help();

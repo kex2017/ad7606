@@ -11,7 +11,7 @@
 #include "ec20_at.h"
 #include "env_cfg.h"
 #include "data_send.h"
-#include "hf_over_current.h"
+#include "over_current.h"
 #include "periph/pm.h"
 #include "type_alias.h"
 #include "x_delay.h"
@@ -163,13 +163,14 @@ void server_request_data_handler(frame_req_t *frame_req)
 {
     msg_t msg;
     if (frame_req->frame_req.requset_data.type) {//召唤波形
-        trigger_sample_hf_over_current_by_hand();
-        trigger_sample_pf_over_current_by_hand();
+        trigger_sample_over_current_by_hand();
+        LOG_INFO("server call wave data");
     }
     else {                                       //召唤有效值
         msg.type = PERIOD_DATA_TYPE;
         msg.content.value = SEND_CALL;
         msg_send(&msg, data_send_pid);
+        LOG_INFO("server call effective value data");
     }
 }
 

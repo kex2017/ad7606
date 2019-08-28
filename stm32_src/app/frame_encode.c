@@ -180,9 +180,9 @@ uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t sen
     index += frame_uint32_encode(data + index, timestamp);
     index += frame_uint8_encode(data + index, channel_count);
     index += frame_uint8_encode(data + index, channel_1);
-    index += frame_float_encode(data + index, ch1_current);
+    index += frame_uint32_encode(data + index, ch1_current);
     index += frame_uint8_encode(data + index, channel_2);
-    index += frame_float_encode(data + index, ch2_current);
+    index += frame_uint32_encode(data + index, ch2_current);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
     return index;

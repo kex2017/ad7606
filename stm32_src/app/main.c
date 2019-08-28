@@ -11,8 +11,7 @@
 #include "sc_device_cfg_test.h"
 #include "upgrade_from_flash.h"
 #include "data_send.h"
-#include "hf_over_current.h"
-#include "pf_over_current.h"
+#include "over_current.h"
 
 static const shell_command_t shell_commands[] = {
 		{ "setenv", "set device cfg", test_set_device_cfg},
@@ -43,10 +42,6 @@ int main(void)
 
 	load_device_cfg();
 
-//	while(1){
-//	    delay_s(1);
-//        daq_spi_read_test_reg();
-//	}
 
 	gps_service_init();
 
@@ -55,8 +50,7 @@ int main(void)
 
 	data_send_serv_init();
 
-	hf_over_current_service_init();
-	pf_over_current_service_init();
+	hf_pf_over_current_service_init();
 	period_data_serv_init();
 
 	send_heart_beat_thread_init();

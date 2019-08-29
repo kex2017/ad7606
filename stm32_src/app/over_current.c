@@ -10,6 +10,7 @@
 #include "periph/rtt.h"
 #include "thread.h"
 #include "x_delay.h"
+#include "type_alias.h"
 #include "periph/gpio.h"
 #include "data_send.h"
 #include "data_transfer.h"
@@ -65,8 +66,8 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 }
 
 /********************over current event******************************/
-hf_over_current_info_t g_hf_over_current_info[MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { {0} };
-pf_over_current_info_t g_pf_over_current_info[MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { {0} };
+hf_over_current_info_t g_hf_over_current_info[MAX_PHASE][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { {{0} }};
+pf_over_current_info_t g_pf_over_current_info[MAX_PHASE][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { {{0}} };
 
 over_current_data_t g_over_current_data = {0};
 
@@ -74,51 +75,42 @@ uint32_t g_hf_max[FPGA_PHASE_NUM][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 float g_pf_cur[FPGA_PHASE_NUM][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
 /******************hf over current info*******************/
-void set_hf_over_current_threshold(uint8_t channel, uint16_t threshold)
+void set_hf_over_current_threshold(uint8_t phase, uint8_t channel, uint16_t threshold)
 {
     fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
-    for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
-        daq_spi_set_hf_threshold(channel, threshold);
-        g_hf_over_current_info[channel].threshold = threshold;
-    }
+    change_spi_cs_pin(phase);
+    daq_spi_set_hf_threshold(channel, threshold);
+    g_hf_over_current_info[phase][channel].threshold = threshold;
     change_spi_cs_pin(cur_fpga_cs);
-//    cfg_set_device_threshold(channel+2, threshold);
 }
 
-void set_hf_over_current_changerate(uint8_t channel, uint16_t changerate)
+void set_hf_over_current_changerate(uint8_t phase, uint8_t channel, uint16_t changerate)
 {
     fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
-    for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
-        daq_spi_set_hf_change_rate(channel, changerate);
-        g_hf_over_current_info[channel].change_rate = changerate;
-    }
+    change_spi_cs_pin(phase);
+    daq_spi_set_hf_change_rate(channel, changerate);
+    g_hf_over_current_info[phase][channel].change_rate = changerate;
     change_spi_cs_pin(cur_fpga_cs);
-//    cfg_set_device_changerate(channel+2, changerate);
 }
 
-hf_over_current_info_t *get_hf_over_current_info(uint8_t channel)
+hf_over_current_info_t *get_hf_over_current_info(uint8_t phase, uint8_t channel)
 {
-    return &g_hf_over_current_info[channel];
+    return &g_hf_over_current_info[phase][channel];
 }
 
 /******************pf over current info*******************/
-void set_pf_over_current_threshold(uint8_t channel, uint16_t threshold)
+void set_pf_over_current_threshold(uint8_t phase, uint8_t channel, uint16_t threshold)
 {
     fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
-    for (uint8_t phase = 0; phase < 3; phase++) {
-        change_spi_cs_pin(phase);
-        daq_spi_set_pf_threshold(channel, threshold * threshold * 512);
-        g_pf_over_current_info[channel].threshold = threshold;
-    }
+    change_spi_cs_pin(phase);
+    daq_spi_set_pf_threshold(channel, threshold * threshold * 512);
+    g_pf_over_current_info[phase][channel].threshold = threshold;
     change_spi_cs_pin(cur_fpga_cs);
-//    cfg_set_device_threshold(channel+2, threshold);
 }
 
-pf_over_current_info_t *get_pf_over_current_info(uint8_t channel)
+pf_over_current_info_t *get_pf_over_current_info(uint8_t phase, uint8_t channel)
 {
-    return &g_pf_over_current_info[channel];
+    return &g_pf_over_current_info[phase][channel];
 }
 
 
@@ -222,27 +214,20 @@ float get_pf_rms(uint8_t phase, uint8_t channel)
     return g_pf_cur[phase][channel];
 }
 
-
 void set_default_threshold_rate(void)
 {
-
-    uint16_t pf_default_threshold[2] = {cfg_get_device_channel_threshold(0), cfg_get_device_channel_threshold(1)};
-
-    uint16_t hf_default_threshold[2] = { cfg_get_device_high_channel_threshold(0),  cfg_get_device_high_channel_threshold(1)};//200 //cfg_get_device_high_channel_threshold(channel)
-    uint16_t hf_default_changerate[2] = { cfg_get_device_high_channel_changerate(0), cfg_get_device_high_channel_changerate(1) }; //cfg_get_device_high_channel_changerate(channel)cfg_get_device_high_channel_changerate(channel)
-
     for (uint8_t phase = 0; phase < 3; phase++) {
         change_spi_cs_pin(phase);
 
         for (int channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
             if (channel < 2) {
-                set_hf_over_current_threshold(channel, hf_default_threshold[channel]);
-                set_hf_over_current_changerate(channel, hf_default_changerate[channel]);
-                LOG_INFO("Set hf over current threshold and changerate for phase %s Channel %d: %d ,%d", (phase==0)?"A":(phase==1)?"B":"C", channel, hf_default_threshold[channel], hf_default_changerate[channel]);
+                set_hf_over_current_threshold(phase, channel, cfg_get_device_hf_channel_threshold(phase, channel));
+                set_hf_over_current_changerate(phase, channel, cfg_get_device_hf_channel_changerate(phase, channel));
+                LOG_INFO("Set hf over current threshold and changerate for phase %s Channel %d: %d ,%d", (phase==0)?"A":(phase==1)?"B":"C", channel, cfg_get_device_hf_channel_threshold(phase, channel), cfg_get_device_hf_channel_changerate(phase, channel));
             }
             else{
-                set_pf_over_current_threshold(channel, pf_default_threshold[channel - 2]);
-                LOG_INFO("Set pf over current threshold for phase %s Channel %d: %d", (phase==0)?"A":(phase==1)?"B":"C", channel, pf_default_threshold[channel - 2]);
+                set_pf_over_current_threshold(phase, channel, cfg_get_device_pf_channel_threshold(phase, channel));
+                LOG_INFO("Set pf over current threshold for phase %s Channel %d: %d", (phase==0)?"A":(phase==1)?"B":"C", channel, cfg_get_device_pf_channel_threshold(phase, channel));
             }
         }
     }
@@ -266,7 +251,7 @@ static void *hf_pf_over_current_event_service(void *arg)
             for (channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (check_over_current_sample_done(channel)) {
                     if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
-                        LOG_WARN("Get over current curve data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", length);
+                        LOG_WARN("Get %s over current curve phase %s channel %d data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", (channel<2)?"hf":"pf", (phase==0)?"A":(phase==1)?"B":"C", channel, (length));
                         continue;
                     }
                     g_over_current_data.phase = phase;
@@ -293,13 +278,14 @@ static void *hf_pf_over_current_event_service(void *arg)
                     LOG_INFO("phase %s channel %d one_sec_clk_cnt reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.one_sec_clk_cnt);
                     LOG_INFO("phase %s channel %d length is %d ns cnt is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, length, g_over_current_data.ns_cnt);
 #endif
+                    (void)send_type;
                     send_over_current_curve(&g_over_current_data, channel, send_type);
                     memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                     clear_over_current_sample_done_flag(channel);
                 }
-                else{
+//                else{
                     update_cycle_data(phase, channel);
-                }
+//                }
             }
 
         }

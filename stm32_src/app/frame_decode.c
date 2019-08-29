@@ -64,6 +64,13 @@ uint16_t frame_set_channel_info_decode(uint8_t* frame_data, frame_req_t *master_
 	return sizeof(uint8_t)+sizeof(uint32_t);
 }
 
+uint16_t frame_get_channel_info_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
+{
+    master_frame_req->frame_req.channel_info.channel = frame_data[0];
+
+    return sizeof(uint8_t);
+}
+
 uint16_t frame_request_data_decode(uint8_t* frame_data, frame_req_t *master_frame_req)
 {
 	master_frame_req->frame_req.requset_data.type = frame_data[0];
@@ -91,7 +98,7 @@ uint16_t frame_req_data_decode(uint8_t* frame_data, frame_req_t *master_frame_re
 		ret = frame_on_need_decode();
 		break;
 	case GET_CHANNEL_INFO_REQ:
-		ret = frame_on_need_decode();
+		ret = frame_get_channel_info_decode(frame_data + index, master_frame_req);
 		break;
 	case SET_CHANNEL_INFO_REQ:
 		ret = frame_set_channel_info_decode(frame_data + index, master_frame_req);

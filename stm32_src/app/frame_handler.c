@@ -65,56 +65,55 @@ void get_running_state_handler(void)
 	(void)length;
 }
 
-void get_channel_info_handler(void)
+void get_channel_info_handler(frame_req_t *frame_req)
 {
-	uint16_t length = 0;
-	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
-	channel_info_t channel_info[4];
+    uint16_t length = 0;
+    uint8_t data[MAX_RSP_FRAME_LEN] = { 0 };
 
-	for (int i = 0; i < 2; i++)
-	{
-		channel_info[i].threshold = cfg_get_device_channel_threshold(i);
-		channel_info[i].change_rate = cfg_get_device_channel_changerate(i);
-	}
-	for (int i = 0; i < 2; i++)
-	{
-		channel_info[i+2].threshold = cfg_get_device_high_channel_threshold(i);
-		channel_info[i+2].change_rate = cfg_get_device_high_channel_changerate(i);
-	}
-	length = frame_channel_info_encode(data, DEVICEOK, channel_info);
+    uint8_t logic_channel = frame_req->frame_req.channel_info.channel;
 
-	msg_send_pack(data, length);
+    uint8_t phase = logic_channel / 4;
+    uint8_t channel = logic_channel % 4;
+    channel_info_t channel_info;
+
+    channel_info.channel = logic_channel;
+    if (channel < 2) { //pf
+        channel_info.threshold = cfg_get_device_pf_channel_threshold(phase, channel);
+        channel_info.change_rate = cfg_get_device_pf_channel_changerate(phase, channel);
+    }
+    else {
+        channel_info.threshold = cfg_get_device_hf_channel_threshold(phase, channel);
+        channel_info.change_rate = cfg_get_device_hf_channel_changerate(phase, channel);
+    }
+    length = frame_channel_info_encode(data, DEVICEOK, &channel_info);
+
+    msg_send_pack(data, length);
 }
 
-void set_chennel_info_by_type(channel_info_t *channel_info)
+void set_channel_info_by_type(channel_info_t *channel_info)
 {
-	if (channel_info->channel > 1)
-	{
-		channel_info->channel = channel_info->channel - 2;
-		cfg_set_high_device_threshold(channel_info->channel,
-									  channel_info->threshold);
-		set_hf_over_current_threshold(channel_info->channel,
-								   channel_info->threshold);
-		cfg_set_high_device_changerate(channel_info->channel,
-									   channel_info->change_rate);
-		set_hf_over_current_changerate(channel_info->channel,
-									channel_info->change_rate);
-	}
-	else
-	{
-		cfg_set_device_threshold(channel_info->channel,
-								 channel_info->threshold);
-		cfg_set_device_changerate(channel_info->channel,
-								  channel_info->change_rate);
-        set_pf_over_current_threshold(channel_info->channel, channel_info->threshold);
-	}
+    uint8_t logic_channel = channel_info->channel;
+    uint8_t channel = logic_channel % 4;
+    uint8_t phase = logic_channel / 4;
+
+    if (channel_info->channel > 1) {
+        cfg_set_high_device_threshold(phase, channel, channel_info->threshold);
+        set_hf_over_current_threshold(phase, channel, channel_info->threshold);
+        cfg_set_high_device_changerate(phase, channel, channel_info->change_rate);
+        set_hf_over_current_changerate(phase, channel, channel_info->change_rate);
+    }
+    else {
+        cfg_set_device_threshold(phase, channel, channel_info->threshold);
+        cfg_set_device_changerate(phase, channel, channel_info->change_rate);
+        set_pf_over_current_threshold(phase, channel, channel_info->threshold);
+    }
 }
 
 void set_channel_info_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
-	set_chennel_info_by_type(&frame_req->frame_req.channel_info);
+	set_channel_info_by_type(&frame_req->frame_req.channel_info);
 
 	length = frame_set_channel_info_rsp_encode(data, DEVICEOK, frame_req->frame_req.channel_info.channel, rtt_get_counter());
 
@@ -249,7 +248,7 @@ void frame_handler(frame_req_t *frame_req)
 		break;
 	case GET_CHANNEL_INFO_REQ:
 		LOG_INFO("Receive get channel info command");
-		get_channel_info_handler();
+		get_channel_info_handler(frame_req);
 		break;
 	case SET_CHANNEL_INFO_REQ:
 		LOG_INFO("Receive set channel info command");

@@ -55,18 +55,20 @@ void set_device_data_interval(uint32_t interval)
 
 void set_device_pf_threshold(uint16_t threshold)
 {
-	printf("Try to set threshold = %d\r\n",threshold);
-	for(int i = 0; i < 2; i++)
-	{
-		cfg_set_device_threshold(i,threshold);
-	}
+    printf("Try to set threshold = %d\r\n", threshold);
+    for (uint8_t phase = 0; phase < 3; phase++) {
+        for (int i = 0; i < 2; i++) {
+            cfg_set_device_threshold(phase, i, threshold);
+        }
+    }
 }
 void set_device_hf_threshold(uint16_t threshold)
 {
-    printf("Try to set threshold = %d\r\n",threshold);
-    for(int i = 0; i < 2; i++)
-    {
-        cfg_set_high_device_threshold(i,threshold);
+    printf("Try to set threshold = %d\r\n", threshold);
+    for (uint8_t phase = 0; phase < 3; phase++) {
+        for (int i = 0; i < 2; i++) {
+            cfg_set_high_device_threshold(phase, i, threshold);
+        }
     }
 }
 

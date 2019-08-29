@@ -44,7 +44,7 @@ void gy25_init(void)
 int gy25_read(char* buffer, int count)
 {
    (void) count;
-   return isrpipe_read(&uart_gy25_isrpipe, buffer, GY25_RX_BUFSIZE);
+   return isrpipe_read_timeout(&uart_gy25_isrpipe, buffer, GY25_RX_BUFSIZE, 100);
 }
 
 void gy25_enable(void)
@@ -234,7 +234,7 @@ void *gps_handler(void *arg)
    uint32_t gps_time = 0;
    gps_init();
    gy25_init();
-//   adjust_roll_angle();
+   adjust_roll_angle();
    while(!gps_get_time())
    {
        delay_ms(10);
@@ -251,7 +251,6 @@ void *gps_handler(void *arg)
         adjust_course_angle();
         delay_s(GPS_INTERVAL);
         gy25_read_dip_angle();
-        continue;
         while (!gps_get_time()) {
             delay_ms(10);
         }

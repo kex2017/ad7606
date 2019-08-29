@@ -2,6 +2,7 @@
 #define TYPE_ALIAS_H_
 
 #define MAX_CHANNEL 2
+#define MAX_PHASE 3
 
 #ifndef boolean
 typedef enum{

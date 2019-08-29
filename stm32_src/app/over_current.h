@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#define ENABLE_DEBUG (1)
+
 #define MAX_HF_OVER_CURRENT_CHANNEL_COUNT 2
 
 #define MAX_PF_OVER_CURRENT_CHANNEL_COUNT 2
@@ -51,11 +53,11 @@ uint32_t get_hf_max(uint8_t phase, uint8_t channel);
 
 kernel_pid_t hf_pf_over_current_service_init(void);
 
-hf_over_current_info_t *get_hf_over_current_info(uint8_t channel);
+hf_over_current_info_t *get_hf_over_current_info(uint8_t phase, uint8_t channel);
 
-void set_hf_over_current_threshold(uint8_t channel, uint16_t threshold);
-void set_hf_over_current_changerate(uint8_t channel, uint16_t changerate);
-void set_pf_over_current_threshold(uint8_t channel, uint16_t threshold);
+void set_hf_over_current_threshold(uint8_t phase, uint8_t channel, uint16_t threshold);
+void set_hf_over_current_changerate(uint8_t phase, uint8_t channel, uint16_t changerate);
+void set_pf_over_current_threshold(uint8_t phase, uint8_t channel, uint16_t threshold);
 void trigger_sample_over_current_by_hand(void);
 
 over_current_data_t *get_over_current_data(void);

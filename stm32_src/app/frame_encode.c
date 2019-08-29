@@ -130,14 +130,9 @@ uint16_t frame_channel_info_encode(uint8_t *data, uint8_t errorcode, channel_inf
 	index += frame_header_encode(data+index, cfg_get_device_id(), GET_CHANNEL_INFO_RSP_DATA_LEN);
 	index += frame_uint8_encode(data+index, GET_CHANNEL_INFO_RSP);
 	index += frame_uint8_encode(data+index, errorcode);
-	index += frame_uint16_encode(data+index ,channel_info[0].threshold);
-	index += frame_uint16_encode(data+index ,channel_info[0].change_rate);
-	index += frame_uint16_encode(data+index ,channel_info[1].threshold);
-	index += frame_uint16_encode(data+index ,channel_info[1].change_rate);
-	index += frame_uint16_encode(data+index ,channel_info[2].threshold);
-	index += frame_uint16_encode(data+index ,channel_info[2].change_rate);
-	index += frame_uint16_encode(data+index ,channel_info[3].threshold);
-	index += frame_uint16_encode(data+index ,channel_info[3].change_rate);
+	index += frame_uint8_encode(data+index, channel_info->channel);
+	index += frame_uint16_encode(data+index ,channel_info->threshold);
+	index += frame_uint16_encode(data+index ,channel_info->change_rate);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
 	return index;
@@ -170,7 +165,7 @@ uint16_t frame_reboot_encode(uint8_t *data, uint8_t errorcode,uint32_t timestamp
 }
 
 
-uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t send_data_type, uint8_t channel_count ,uint8_t channel_1, uint32_t ch1_current, uint8_t channel_2,uint32_t ch2_current, uint32_t timestamp)
+uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t send_data_type, uint8_t channel_count ,uint8_t channel_1, float ch1_current, uint8_t channel_2, float ch2_current, uint32_t timestamp)
 {
     uint16_t index = 0;
     index += frame_header_encode(data + index, cfg_get_device_id(), (POWER_CURRENT_RSP_DATA_LEN + channel_count * 5));
@@ -180,9 +175,9 @@ uint16_t current_cycle_data_encode(uint8_t *data, uint8_t errorcode, uint8_t sen
     index += frame_uint32_encode(data + index, timestamp);
     index += frame_uint8_encode(data + index, channel_count);
     index += frame_uint8_encode(data + index, channel_1);
-    index += frame_uint32_encode(data + index, ch1_current);
+    index += frame_float_encode(data + index, ch1_current);
     index += frame_uint8_encode(data + index, channel_2);
-    index += frame_uint32_encode(data + index, ch2_current);
+    index += frame_float_encode(data + index, ch2_current);
     index += frame_cs_encode(data + index, byte_sum_checksum(data, index));
 
     return index;

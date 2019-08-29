@@ -11,7 +11,7 @@
 #include "x_delay.h"
 #include "periph/rtt.h"
 #include "kldaq_fpga_spi.h"
-
+#include "over_current.h"
 
 void daq_usage_help(void)
 {
@@ -58,6 +58,12 @@ int daq_command(int argc, char **argv)
         uint16_t  peak = daq_spi_get_dat_max(channel);
         LOG_INFO("read peak with channel:%d peak:%d!", channel, peak);
     }
+    else if (strncmp(argv[1], "rms", 4) == 0) {
+        uint8_t phase = (uint8_t)strtol(argv[2], NULL, 10);
+        uint8_t  channel = (uint8_t)strtol(argv[3], NULL, 10);
+        float rms_data = get_pf_rms(phase, channel);
+        LOG_INFO("read rms with channel:%d rms:%f!", channel, rms_data);
+      }
     else if (strncmp(argv[1], "isdone", 8) == 0) {
         uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);
         int done_flag = daq_spi_sample_done_check(channel);

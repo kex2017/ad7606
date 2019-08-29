@@ -29,10 +29,10 @@ void send_high_current_cycle_data(uint8_t send_type)
     for (uint8_t phase = 0; phase < 3; phase++) {
         for (uint8_t channel = 0; channel < MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             hf_cur[channel] = get_hf_max(phase, channel);
-            LOG_INFO("hf cur phase %d channel[%d]: max data is %ld", phase, channel, hf_cur[channel]);
+            LOG_INFO("hf cur phase %s channel[%d]: max data is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, hf_cur[channel]);
         }
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_HF_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0 + phase*4,
-                                        hf_cur[0], HF_CHAN_1 + phase * 4, hf_cur[1], rtt_get_counter());
+                                        (float)hf_cur[0], HF_CHAN_1 + phase * 4, (float)hf_cur[1], rtt_get_counter());
         msg_send_pack(data, len);
     }
 }
@@ -46,10 +46,10 @@ void send_pf_current_cycle_data(uint8_t send_type)
     for (uint8_t phase = 0; phase < 3; phase++) {
         for (uint8_t channel = 0; channel < MAX_HF_OVER_CURRENT_CHANNEL_COUNT; channel++) {
             pf_cur[channel] = get_pf_rms(phase, channel);
-            LOG_INFO("pf cur phase %d channel[%d] rms data is : %f", phase, channel, pf_cur[channel]);
+            LOG_INFO("pf cur phase %s channel[%d] rms data is : %f", (phase==0)?"A":(phase==1)?"B":"C", channel, pf_cur[channel]);
         }
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_PF_OVER_CURRENT_CHANNEL_COUNT, PF_CHAN_0 + phase*4,
-                                        (uint32_t)pf_cur[0], PF_CHAN_1 + phase*4, (uint32_t)pf_cur[1], rtt_get_counter());
+                                        pf_cur[0], PF_CHAN_1 + phase*4, pf_cur[1], rtt_get_counter());
         msg_send_pack(data, len);
     }
 }
@@ -140,7 +140,6 @@ static void upload_period_data(uint8_t send_type)
     send_high_current_cycle_data(send_type);
     send_pf_current_cycle_data(send_type);
     send_dip_angle_data();
-
 }
 
 void *data_send_serv(void *arg)

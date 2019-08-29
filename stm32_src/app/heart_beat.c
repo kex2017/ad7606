@@ -10,6 +10,7 @@
 #include "x_delay.h"
 #include "type_alias.h"
 #include "log.h"
+#include "gps_sync.h"
 #include "periph/stm32f10x_std_periph.h"
 
 #define ENABLE_DEBUG (1)
@@ -34,12 +35,14 @@ void time_to_send_heart_msg(void)
 	do_send_heart_beat_packet(data, length);
 }
 
-
+#include "daq.h"
 void *send_heart_beat_handler(void* arg)
 {
  	(void) arg;
  	static int times = 0;
  	while (1) {
+ 	    daq_spi_chan_set_fpga_utc(rtt_get_counter());
+ 	    gy25_read_dip_angle();
  		delay_s(60);
 		if(times % 10 == 0)
 		{

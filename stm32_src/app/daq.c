@@ -54,6 +54,8 @@ void change_spi_cs_pin(fpga_cs_t cs_no)
 {
     ((fpga_spi_dev_t *)g_spi_dev)->cs_pin = fpga_cs_pin[cs_no];
     g_cur_fpga_cs = cs_no;
+    delay_ms(20);
+    LOG_INFO("change cs pin to %s\r\n", (cs_no==0)?"A":(cs_no==1)?"B":"C");
 }
 
 fpga_cs_t get_cur_fpga_cs(void)
@@ -174,11 +176,13 @@ uint32_t daq_spi_chan_event_utc(uint8_t chan_no)
 
 void daq_spi_chan_set_fpga_utc(uint32_t utc_time)
 {
+    fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
     for (uint8_t phase = 0; phase < 3; phase++) {
         change_spi_cs_pin(phase);
         daq_spi_write_reg(0, SET_UTC_TIME_H, (utc_time >> 16) & 0xFFFF);
         daq_spi_write_reg(0, SET_UTC_TIME_L, utc_time & 0xFFFF);
     }
+    change_spi_cs_pin(cur_fpga_cs);
 }
 
 void daq_spi_read_test_reg(void)

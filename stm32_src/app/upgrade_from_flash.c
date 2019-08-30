@@ -224,6 +224,16 @@ void flash_set_app_to_run(uint8_t type)
     }
 }
 
+uint8_t fpga_cfg_status[3] = {0};
+void set_fpga_cfg_status(uint8_t fpga_no, uint8_t cfg_status)
+{
+    fpga_cfg_status[fpga_no] =  cfg_status;
+}
+
+uint8_t check_fpga_cfg_status(uint8_t fpga_no)
+{
+    return fpga_cfg_status[fpga_no];
+}
 
 void download_fpga_image(uint8_t fpga_no)
 {
@@ -235,6 +245,7 @@ void download_fpga_image(uint8_t fpga_no)
     unsigned char buf[512];
     int i;
     char *f_name = NULL;
+    int cfg_error_flag = 0;
 
     printf("start download fpga %s image\r\n", (fpga_no==0)?"A":(fpga_no==1)?"B":"C");
     set_cur_ctr_fpga_no(fpga_no);
@@ -258,22 +269,21 @@ void download_fpga_image(uint8_t fpga_no)
     if (result != FR_OK) {
         LOG_ERROR("Don't Find File: %s", f_name);
         return;
-    } else {
-        LOG_INFO("Open File OK.");
     }
     /* 读取文件 */
 //static int cur = 0;
     for (i = 0;; i++) {
         result = f_read(&file, &buf, sizeof(buf), (UINT*) &bw);
         if (result || bw == 0) {
-            LOG_INFO("read data from file ok!\r\n");
+            LOG_INFO("Download FPGA OVER!\r\n");
 //            LOG_ERROR("Error: %d:%ld", result, bw);
             break;
         } else {
 //            printf("cur download place is %ld num is %d\r\n", bw, ++cur);
             // !i == 1, first flag is true, otherwise, false.
             if (Config_FPGA(bw, buf, !i)) {
-                LOG_ERROR("Download PFGA FAIL %d", i);
+                cfg_error_flag = 1;
+                LOG_ERROR("Download FPGA FAIL %d", i);
                 break;
             }
         }
@@ -285,6 +295,8 @@ void download_fpga_image(uint8_t fpga_no)
     /* 卸载文件系统 */
     f_mount(0, "", 1);
 
-    LOG_INFO("config FPGA %s image result: %s.\r\n", (fpga_no==0)?"A":(fpga_no==1)?"B":"C", !is_fpga_microcode_work_no_ok() ? "OK!" : "NOK!");
+    set_fpga_cfg_status(fpga_no, (!is_fpga_microcode_work_no_ok() && !cfg_error_flag));
+
+    LOG_INFO("config FPGA %s image result: %s.\r\n", (fpga_no==0)?"A":(fpga_no==1)?"B":"C", check_fpga_cfg_status(fpga_no) ? "SUCCESS!" : "FAILED!");
 }
 

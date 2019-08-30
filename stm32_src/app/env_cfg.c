@@ -182,7 +182,7 @@ void cfg_set_high_device_k_b(uint8_t phase, uint8_t channel, float k, float b)
 }
 
 #define DEFAULT_THRESHOLD (200)
-#define DATA_CHANGE_RATE (2047U);
+#define DATA_CHANGE_RATE (4095U);
 void load_device_cfg(void)
 {
 	uint32_t page = 0;

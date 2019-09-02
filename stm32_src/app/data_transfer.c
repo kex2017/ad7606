@@ -192,6 +192,11 @@ void *frame_parser_data(void *arg)
 		{
 			frame_decode(parser_buff, &req_data);
 			frame_handler(&req_data);
+			printf("receive frame : \r\n");
+			for(int i = 0; i < rev_data_len;i++){
+			    printf("%02x ", parser_buff[i]);
+			}
+			printf("\r\n");
 			memset(parser_buff, 0, rev_data_len);
 		}
 	}

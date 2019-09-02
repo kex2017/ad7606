@@ -24,6 +24,12 @@ enum
 
 void msg_send_pack(uint8_t *data, uint32_t data_len)
 {
+//    printf("send to server frame:\r\n");
+//    for(uint32_t i = 0; i < data_len; i++){
+//        printf("%02x ", data[i]);
+//    }
+//    printf("\r\n\r\n");
+
 	if (get_ec20_link_flag() == LINK_UP)
 	{
 		while (set_data_to_cache(data, data_len) == 0)
@@ -220,6 +226,7 @@ void collection_cycle_handler(frame_req_t *frame_req)
 {
 	uint16_t length = 0;
 	uint8_t data[MAX_RSP_FRAME_LEN] = {0};
+	uint16_t *p_interval = cfg_get_device_data_interval();
 
 	if (frame_req->frame_req.collection_cycle.type)
 	{
@@ -230,7 +237,8 @@ void collection_cycle_handler(frame_req_t *frame_req)
 	{
 		LOG_INFO("Receive get collection cycle command");
 	}
-	length = frame_collection_cycle_data_encode(data, DEVICEOK, frame_req->frame_req.collection_cycle.type, cfg_get_device_data_interval());
+
+	length = frame_collection_cycle_data_encode(data, DEVICEOK, frame_req->frame_req.collection_cycle.type, *p_interval);
 
 	msg_send_pack(data, length);
 }

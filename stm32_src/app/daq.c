@@ -55,7 +55,7 @@ void change_spi_cs_pin(fpga_cs_t cs_no)
     ((fpga_spi_dev_t *)g_spi_dev)->cs_pin = fpga_cs_pin[cs_no];
     g_cur_fpga_cs = cs_no;
     delay_ms(20);
-    LOG_INFO("change cs pin to %s\r\n", (cs_no==0)?"A":(cs_no==1)?"B":"C");
+//    LOG_INFO("change cs pin to %s\r\n", (cs_no==0)?"A":(cs_no==1)?"B":"C");
 }
 
 fpga_cs_t get_cur_fpga_cs(void)

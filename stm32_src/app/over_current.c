@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "over_current.h"
+#include "upgrade_from_flash.h"
 #include "fault_location_threads.h"
 #include "env_cfg.h"
 #include "log.h"
@@ -14,9 +15,20 @@
 #include "periph/gpio.h"
 #include "data_send.h"
 #include "data_transfer.h"
+#include "period_data.h"
 #include "daq.h"
 
+
+#define ENABLE_MOCK_DATA (1)
+#include <math.h>
+
 kernel_pid_t hf_over_current_pid = KERNEL_PID_UNDEF;
+
+static kernel_pid_t data_send_pid;
+void over_current_hook(kernel_pid_t pid)
+{
+    data_send_pid = pid;
+}
 
 /*******************over current event pin irq *******************/
 #define  HF_OVER_CURRENT_EVENT_PIN  GPIO_PIN(PORT_E,2)
@@ -69,7 +81,8 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 hf_over_current_info_t g_hf_over_current_info[MAX_PHASE][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { {{0} }};
 pf_over_current_info_t g_pf_over_current_info[MAX_PHASE][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { {{0}} };
 
-over_current_data_t g_over_current_data = {0};
+over_current_data_t g_over_current_data[MAX_PHASE][OVER_CURRENT_CHANNEL_COUNT] = {0};
+uint16_t curve_data[MAX_FPGA_DATA_LEN/2];
 
 uint32_t g_hf_max[FPGA_PHASE_NUM][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 float g_pf_cur[FPGA_PHASE_NUM][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
@@ -140,44 +153,95 @@ float get_pf_over_current_rms(uint8_t channel)
 
 uint32_t read_over_current_sample_length(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    if (channel < 2)
+        return 8 * 1024;
+    else
+        return 3 * 1024;
+#else
     return daq_spi_get_data_len(channel);
+#endif
 }
 
 uint32_t read_over_current_cnt_since_plus(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    return channel + 100;
+#else
     return daq_spi_chan_cnt_since_plus(channel);
+#endif
 }
 
 uint32_t read_over_current_one_sec_clk_cnt(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    (void)channel;
+    return channel * 100;
+#else
     return daq_spi_one_sec_clk_cnt(channel);
+#endif
 }
 
 uint32_t read_over_current_event_utc(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    (void)channel;
+    return rtt_get_counter();
+#else
     return daq_spi_chan_event_utc(channel);
+#endif
 }
 
+#define PI 3.141592
 void read_over_current_sample_data(uint8_t channel, uint8_t *data, uint32_t addr, size_t byte_len)
 {
+#if ENABLE_MOCK_DATA
+    (void)addr;
+    (void)channel;
+    uint16_t *p_data = (uint16_t *)data;
+
+    if(channel < 2){
+        for(size_t i = 0; i < byte_len/2;i++){
+            p_data[i] = (uint16_t)(4096 * sin(PI * 2 * i / 4096) + 4096);//一个周期波形
+            p_data[i] = get_fpga_uint16_data(p_data[i]);
+        }
+    }
+    else {
+        for (size_t i = 0; i < byte_len / 2; i++) {
+            p_data[i] = (uint16_t)(4096 * sin(PI * 2 * i / (1536 / 3)) + 4096);//三个周期波形
+            p_data[i] = get_fpga_uint16_data(p_data[i]);
+        }
+    }
+#else
     daq_spi_sample_data_read(channel, data, addr, byte_len);
+#endif
 }
 
-over_current_data_t *get_over_current_data(void)
+over_current_data_t *get_over_current_data(uint8_t phase, uint8_t channel)
 {
-    return &g_over_current_data;
+    return &g_over_current_data[phase][channel];
 }
 
 /**************************end*********************/
-
+uint8_t sample_done_flag = 0x0F;
 int check_over_current_sample_done(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    (void)channel;
+    return (sample_done_flag & 1<<channel);
+#else
     return daq_spi_sample_done_check(channel);
+#endif
 }
 
 void clear_over_current_sample_done_flag(uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    (void)channel;
+//    sample_done_flag &= ~(1 << channel);
+#else
     daq_spi_clear_data_done_flag(channel);
+#endif
 }
 
 void trigger_sample_over_current_by_hand(void)
@@ -197,11 +261,16 @@ void trigger_sample_over_current_by_hand(void)
 
 void update_cycle_data(uint8_t phase, uint8_t channel)
 {
+#if ENABLE_MOCK_DATA
+    g_hf_max[phase][channel] = 4000 + phase*100 + channel*10;
+    g_pf_cur[phase][channel-2] = 300.0 + phase*10 + channel;
+#else
     g_hf_max[phase][channel] = get_hf_over_current_max(channel);
 
     int64_t pf_sum = daq_spi_get_pf_sum_data(channel);
     uint16_t sample_cnt = daq_spi_get_data_len(channel) / 2;
     g_pf_cur[phase][channel-2] = sqrt(pf_sum / (double)sample_cnt);
+#endif
 }
 
 uint32_t get_hf_max(uint8_t phase, uint8_t channel)
@@ -239,57 +308,65 @@ static void *hf_pf_over_current_event_service(void *arg)
     uint8_t channel = 0;
     uint32_t length = 0;
     uint8_t send_type = 0;
+    msg_t msg;
+    send_curve_info_t curve_info[FPGA_PHASE_NUM][OVER_CURRENT_CHANNEL_COUNT];
 
     set_default_threshold_rate();
-
     while (1) {
         send_type = get_send_type();
-
         for (uint8_t phase = 0; phase < 3; phase++) {
+            if(CFG_NOK == check_fpga_cfg_status(phase))continue;
             change_spi_cs_pin(phase);
-
             for (channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (check_over_current_sample_done(channel)) {
                     if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
                         LOG_WARN("Get %s over current curve phase %s channel %d data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", (channel<2)?"hf":"pf", (phase==0)?"A":(phase==1)?"B":"C", channel, (length));
                         continue;
                     }
-                    g_over_current_data.phase = phase;
-                    g_over_current_data.curve_len = length;
-                    g_over_current_data.data_type = (channel<2)?HF_TYPE:PF_TYPE;
-                    g_over_current_data.timestamp = read_over_current_event_utc(channel);
-                    g_over_current_data.one_sec_clk_cnt = read_over_current_one_sec_clk_cnt(channel);
-                    g_over_current_data.ns_cnt = read_over_current_cnt_since_plus(channel);
-                    read_over_current_sample_data(channel, (uint8_t*)g_over_current_data.curve_data, 0, length);
-
+                    memset(&g_over_current_data[phase][channel], 0, sizeof(over_current_data_t));
+                    memset(curve_data, 0, sizeof(curve_data));
+                    g_over_current_data[phase][channel].phase = phase;
+                    g_over_current_data[phase][channel].curve_len = length;
+                    g_over_current_data[phase][channel].data_type = (channel<2)?HF_TYPE:PF_TYPE;
+                    g_over_current_data[phase][channel].timestamp = read_over_current_event_utc(channel);
+                    g_over_current_data[phase][channel].one_sec_clk_cnt = read_over_current_one_sec_clk_cnt(channel);
+                    g_over_current_data[phase][channel].ns_cnt = read_over_current_cnt_since_plus(channel);
+                    read_over_current_sample_data(channel, (uint8_t*)curve_data, 0, length);
+                    save_curve_data(phase, channel, (uint8_t*)curve_data, length);
+                    LOG_INFO("phase %s channel %d utc reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data[phase][channel].timestamp);
 #if ENABLE_DEBUG
-                    printf("read data is :\r\n");
+                    memset(curve_data, 0, sizeof(curve_data));
+                    read_curve_data(phase, channel, 0, (uint8_t*)curve_data, length);
+                    printf("phase %s channel %d read data is :\r\n", (phase==0)?"A":(phase==1)?"B":"C", channel);
                     for (uint16_t i = 0; i < length / 2; i++) {
-                        g_over_current_data.curve_data[i] = get_fpga_uint16_data(
-                                        g_over_current_data.curve_data[i]);
+                        curve_data[i] = get_fpga_uint16_data(curve_data[i]);
                         if (((i + 1) % 20) == 0) printf("\r\n");
-                        printf("%d ", g_over_current_data.curve_data[i]);
+                        printf("%d ", curve_data[i]);
                     }
                     printf("\r\n");
 
-
-                    LOG_INFO("phase %s channel %d utc reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.timestamp);
-                    LOG_INFO("phase %s channel %d cnt_since_plus reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.ns_cnt);
-                    LOG_INFO("phase %s channel %d one_sec_clk_cnt reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data.one_sec_clk_cnt);
-                    LOG_INFO("phase %s channel %d length is %d ns cnt is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, length, g_over_current_data.ns_cnt);
+                    LOG_INFO("phase %s channel %d utc reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data[phase][channel].timestamp);
+                    LOG_INFO("phase %s channel %d cnt_since_plus reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data[phase][channel].ns_cnt);
+                    LOG_INFO("phase %s channel %d one_sec_clk_cnt reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data[phase][channel].one_sec_clk_cnt);
+                    LOG_INFO("phase %s channel %d length is %d ns cnt is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, length, g_over_current_data[phase][channel].ns_cnt);
 #endif
-                    (void)send_type;
-                    send_over_current_curve(&g_over_current_data, channel, send_type);
-                    memset(&g_over_current_data, 0, sizeof(over_current_data_t));
+                    msg.type = MUTATION_TYPE;
+                    curve_info[phase][channel].phase = phase;
+                    curve_info[phase][channel].channel = channel;
+                    curve_info[phase][channel].send_type = send_type;
+                    msg.content.ptr = (void*)&curve_info[phase][channel];
+                    msg_send(&msg, data_send_pid);
+//                    send_over_current_curve(&g_over_current_data, channel, send_type);
+//                    memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                     clear_over_current_sample_done_flag(channel);
                 }
 //                else{
                     update_cycle_data(phase, channel);
 //                }
             }
-
         }
         delay_ms(200);
+        delay_s(5);
     }
     return NULL;
 }

@@ -54,7 +54,7 @@ void *send_heart_beat_handler(void* arg)
  	}
 }
 
-static char send_heart_beat_thread_stack[THREAD_STACKSIZE_MAIN];
+static char send_heart_beat_thread_stack[THREAD_STACKSIZE_MAIN/2];
 void send_heart_beat_thread_init(void) {
 	DEBUG("Send heart beat thread start....\r\n");
 	kernel_pid_t _pid;

@@ -15,7 +15,7 @@
 #include "periph/flashpage.h"
 
 enum{
-    FLAG_ON = 0x212101,
+    FLAG_ON = 0x212102,
     FLAG_OFF = 0x121201
 };
 
@@ -74,9 +74,9 @@ void cfg_set_device_data_interval(uint16_t data_interval)
     update_device_cfg();
 }
 
-uint16_t cfg_get_device_data_interval(void)
+uint16_t* cfg_get_device_data_interval(void)
 {
-    return g_device_cfg.device_cfg.data_interval;
+    return &g_device_cfg.device_cfg.data_interval;
 }
 
 uint16_t cfg_get_device_pf_channel_threshold(uint8_t phase, uint8_t channel)

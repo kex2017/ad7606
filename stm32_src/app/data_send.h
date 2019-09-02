@@ -13,7 +13,7 @@
 
 
 #define PERIOD_DATA_TYPE 0
-#define PF_MUTATION_TYPE 1
+#define MUTATION_TYPE 1
 #define PF_PERIOD_DATA_TYPE 3
 #define GENERAL_CALL_DATA_TYPE 4
 
@@ -37,5 +37,4 @@ uint8_t get_server_call_flag(void);
 
 kernel_pid_t data_send_serv_init(void);
 void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel, uint8_t send_type);
-
 #endif /* APP_DATA_SEND_H_ */

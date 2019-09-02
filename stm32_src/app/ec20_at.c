@@ -12,6 +12,13 @@
 char p_ip_addr[20] = {0};//"122.224.250.234"
 static uint16_t p_port = 0;//6891
 
+//void get_dev_ip_port(void){
+//    p_port = 60002;
+//    memset(p_ip_addr, 0, sizeof(p_ip_addr));
+//    sprintf(p_ip_addr, "%d.%d.%d.%d", 220, 189, 213, 2);
+//    DEBUG("get server ip as:%s, server port as:%d\n", p_ip_addr, p_port);
+//}
+
 void get_dev_ip_port(void){
     p_port = 41012;
     memset(p_ip_addr, 0, sizeof(p_ip_addr));

@@ -87,7 +87,7 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
 {
     uint16_t len = 0;
     uint8_t data[MAX_FRAME_LEN] = {0};
-    uint8_t pk_data[PACKET_DATA_LEN] = {0};
+    uint16_t pk_data[PACKET_DATA_LEN/2] = {0};
     uint16_t pkg_num = 0;
     uint8_t left_data_len = 0;
     uint8_t logic_channal = 0;
@@ -97,23 +97,23 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
         logic_channal = over_current_data->phase * 4 + channel + 2;//hf A:2,3 B:6,7 C:10,11
     else
         logic_channal = over_current_data->phase * 4 + channel - 2;//pf A:0,1 B:4,5 C:6,7
-
     pkg_num = over_current_data->curve_len / PACKET_DATA_LEN;
     if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {
         pkg_num += 1;
     }
-
     for (uint16_t i = 0; i < pkg_num; i++) {
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
-            memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, left_data_len);
+            read_curve_data(over_current_data->phase, channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, left_data_len);
+//            memcpy(pk_data, curve_data + i * PACKET_DATA_LEN, left_data_len);
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
-                                                    pk_data, left_data_len);
+                                               (uint8_t*)pk_data, left_data_len);
         }
         else {
-            memcpy(pk_data, ((uint8_t*)over_current_data->curve_data) + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
+            read_curve_data(over_current_data->phase, channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, PACKET_DATA_LEN);
+//            memcpy(pk_data, curve_data + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
-                                                    pk_data, PACKET_DATA_LEN);
+                                               (uint8_t*)pk_data, PACKET_DATA_LEN);
         }
         LOG_INFO("send over current %s curve data phase %s channel %d pkg num is %d cur pkg num is %d", (over_current_data->data_type==HF_TYPE)?"hf":"pf", (over_current_data->phase==0)?"A":(over_current_data->phase==1)?"B":"C", channel, pkg_num, i);
         msg_send_pack(data, len);
@@ -141,17 +141,39 @@ static void upload_period_data(uint8_t send_type)
     send_pf_current_cycle_data(send_type);
     send_dip_angle_data();
 }
+#include "data_transfer.h"
 
 void *data_send_serv(void *arg)
 {
     (void)arg;
     msg_t msg;
-    msg_init_queue(send_task_rcv_queue, 8);
     uint8_t send_type = 0;
+    over_current_data_t* over_current_data = NULL;
+    send_curve_info_t curve_info;
+
+    msg_init_queue(send_task_rcv_queue, 8);
     while (1) {
         msg_receive(&msg);
-        send_type = msg.content.value;
-        upload_period_data(send_type);
+        switch (msg.type) {
+        case PERIOD_DATA_TYPE:
+            send_type = msg.content.value;
+            upload_period_data(send_type);
+            break;
+        case MUTATION_TYPE:
+            curve_info = *((send_curve_info_t*)msg.content.ptr);
+            LOG_INFO("start send channel %d mutation data...\r\n", curve_info.channel);
+            over_current_data = get_over_current_data(curve_info.phase, curve_info.channel);
+            while(!get_ec20_link_flag())delay_ms(20);
+            send_over_current_curve(over_current_data, curve_info.channel, curve_info.send_type);
+//            for (uint16_t i = 0; i < sizeof(read_data_buf) / 2; i++) {
+//                if (((i + 1) % 20) == 0) printf("\r\n");
+//                printf("%d ", read_data_buf[i]);
+//            }
+//            printf("\r\n");
+            break;
+        default:
+            break;
+        }
         delay_ms(100);
     }
 }
@@ -164,6 +186,7 @@ kernel_pid_t data_send_serv_init(void)
                                       THREAD_CREATE_STACKTEST, data_send_serv, NULL, "data send serv");
     period_data_hook(_pid);
     request_data_hook(_pid);
+    over_current_hook(_pid);
     return _pid;
 }
 

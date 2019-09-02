@@ -32,7 +32,9 @@ int main(void)
 	daq_init();
 
 	download_fpga_image(FPGA_A_CS);
+	delay_s(1);
 	download_fpga_image(FPGA_B_CS);
+	delay_s(1);
 	download_fpga_image(FPGA_C_CS);
 	delay_s(5);
 

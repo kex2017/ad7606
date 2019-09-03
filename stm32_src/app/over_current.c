@@ -17,9 +17,6 @@
 #include "data_transfer.h"
 #include "period_data.h"
 #include "daq.h"
-
-
-#define ENABLE_MOCK_DATA (1)
 #include <math.h>
 
 kernel_pid_t hf_over_current_pid = KERNEL_PID_UNDEF;
@@ -317,7 +314,7 @@ static void *hf_pf_over_current_event_service(void *arg)
     while (1) {
         send_type = get_send_type();
         for (uint8_t phase = 0; phase < 3; phase++) {
-//            if(CFG_NOK == check_fpga_cfg_status(phase))continue;
+            if(CFG_NOK == check_fpga_cfg_status(phase))continue;
             change_spi_cs_pin(phase);
             for (channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (check_over_current_sample_done(channel)) {

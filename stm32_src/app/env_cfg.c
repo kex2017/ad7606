@@ -212,8 +212,6 @@ void load_device_cfg(void)
         }
 	}
 
-
-
 	memset((void*)&g_device_cfg, 0x0, FLASH_PAGE_SIZE);
 
 	page = get_device_cfg_flash_page_addr();

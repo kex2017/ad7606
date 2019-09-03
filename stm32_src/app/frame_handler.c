@@ -173,8 +173,8 @@ void server_request_data_handler(frame_req_t *frame_req)
         LOG_INFO("server call wave data");
     }
     else {                                       //召唤有效值
-        msg.type = PERIOD_DATA_TYPE;
-        msg.content.value = SEND_CALL;
+        msg.type = CALL_DATA_TYPE;
+        msg.content.value = rtt_get_counter();
         msg_send(&msg, data_send_pid);
         LOG_INFO("server call effective value data");
     }

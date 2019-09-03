@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#define ENABLE_MOCK_DATA (1)
+
 #define ENABLE_DEBUG (0)
 
 #define MAX_HF_OVER_CURRENT_CHANNEL_COUNT 2

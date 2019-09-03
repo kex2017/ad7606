@@ -22,7 +22,7 @@
 
 #define HF_CHAN_0 2
 #define HF_CHAN_1 3
-void send_high_current_cycle_data(uint8_t send_type)
+void send_high_current_cycle_data(uint8_t send_type, uint32_t timestamp)
 {
     uint8_t data[256] = { 0 };
     uint16_t len = 0;
@@ -34,12 +34,12 @@ void send_high_current_cycle_data(uint8_t send_type)
             LOG_INFO("hf cur phase %s channel[%d]: max data is %ld", (phase==0)?"A":(phase==1)?"B":"C", channel, hf_cur[channel]);
         }
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_HF_OVER_CURRENT_CHANNEL_COUNT, HF_CHAN_0 + phase*4,
-                                        (float)hf_cur[0], HF_CHAN_1 + phase * 4, (float)hf_cur[1], rtt_get_counter());
+                                        (float)hf_cur[0], HF_CHAN_1 + phase * 4, (float)hf_cur[1], timestamp);
         msg_send_pack(data, len);
     }
 }
 
-void send_pf_current_cycle_data(uint8_t send_type)
+void send_pf_current_cycle_data(uint8_t send_type, uint32_t timestamp)
 {
     uint16_t len = 0;
     uint8_t data[256] = { 0 };
@@ -51,7 +51,7 @@ void send_pf_current_cycle_data(uint8_t send_type)
             LOG_INFO("pf cur phase %s channel[%d] rms data is : %f", (phase==0)?"A":(phase==1)?"B":"C", channel, pf_cur[channel]);
         }
         len = current_cycle_data_encode(data, DEVICEOK, send_type, MAX_PF_OVER_CURRENT_CHANNEL_COUNT, PF_CHAN_0 + phase*4,
-                                        pf_cur[0], PF_CHAN_1 + phase*4, pf_cur[1], rtt_get_counter());
+                                        pf_cur[0], PF_CHAN_1 + phase*4, pf_cur[1], timestamp);
         msg_send_pack(data, len);
     }
 }
@@ -135,11 +135,11 @@ void send_dip_angle_data(void)
 
 static msg_t send_task_rcv_queue[SEND_TASK_QUEUE_SIZE];
 
-static void upload_period_data(uint8_t send_type)
+static void upload_period_data(uint8_t send_type, uint32_t timestamp)
 {
     LOG_INFO("send cycle data");
-    send_high_current_cycle_data(send_type);
-    send_pf_current_cycle_data(send_type);
+    send_high_current_cycle_data(send_type, timestamp);
+    send_pf_current_cycle_data(send_type, timestamp);
 }
 
 void *data_send_serv(void *arg)
@@ -147,6 +147,7 @@ void *data_send_serv(void *arg)
     (void)arg;
     msg_t msg;
     uint8_t send_type = 0;
+    uint32_t timestamp = 0;
     over_current_data_t* over_current_data = NULL;
     send_curve_info_t curve_info;
 
@@ -155,8 +156,14 @@ void *data_send_serv(void *arg)
         msg_receive(&msg);
         switch (msg.type) {
         case PERIOD_DATA_TYPE:
-            send_type = msg.content.value;
-            upload_period_data(send_type);
+            send_type = PERIOD_DATA_TYPE;
+            timestamp = (uint32_t)msg.content.value;
+            upload_period_data(send_type, timestamp);
+            break;
+        case CALL_DATA_TYPE:
+            send_type = CALL_DATA_TYPE;
+            timestamp = (uint32_t)msg.content.value;
+            upload_period_data(send_type, timestamp);
             break;
         case MUTATION_TYPE:
             curve_info = *((send_curve_info_t*)msg.content.ptr);

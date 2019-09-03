@@ -53,29 +53,24 @@ void read_curve_data(uint8_t phase, uint8_t channel, uint32_t data_addr, uint8_t
     memcpy(data, page_addr, data_len);
 }
 
-static void interval_send_period_data(uint32_t interval_time)
-{
-    msg_t msg;
-    msg.type = PERIOD_DATA_TYPE;
-    msg.content.value = SEND_PERIOD_TYPE;
-
-    period_send_data_time_now = rtt_get_counter();
-    if(period_send_data_time_start == 0)
-        period_send_data_time_start = period_send_data_time_now;
-    if (period_send_data_time_now - period_send_data_time_start > interval_time) {
-        msg_send(&msg, data_send_pid);
-        period_send_data_time_start = period_send_data_time_now;
-    }
-}
-
-
 void *period_data_serv(void *arg)
 {
     (void)arg;
+    msg_t msg;
     uint16_t* interval_time = cfg_get_device_data_interval();
 
     while (1) {
-        interval_send_period_data(*interval_time);
+        period_send_data_time_now = rtt_get_counter();
+        if(period_send_data_time_start == 0)
+            period_send_data_time_start = period_send_data_time_now;
+        if (period_send_data_time_now - period_send_data_time_start > *interval_time) {
+
+            msg.type = PERIOD_DATA_TYPE;
+            msg.content.value = rtt_get_counter();
+            msg_send(&msg, data_send_pid);
+
+            period_send_data_time_start = period_send_data_time_now;
+        }
         delay_ms(200);
     }
 }

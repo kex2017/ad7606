@@ -223,12 +223,13 @@ over_current_data_t *get_over_current_data(uint8_t phase, uint8_t channel)
 }
 
 /**************************end*********************/
-uint8_t sample_done_flag = 0x0F;
+uint16_t sample_done_flag = 0xFFF;
 int check_over_current_sample_done(uint8_t channel)
 {
 #if ENABLE_MOCK_DATA
     (void)channel;
-    return (sample_done_flag & 1<<channel);
+    fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
+    return (sample_done_flag & (1 << (channel + cur_fpga_cs * 4)));
 #else
     return daq_spi_sample_done_check(channel);
 #endif
@@ -238,7 +239,8 @@ void clear_over_current_sample_done_flag(uint8_t channel)
 {
 #if ENABLE_MOCK_DATA
     (void)channel;
-//    sample_done_flag &= ~(1 << channel);
+    fpga_cs_t cur_fpga_cs = get_cur_fpga_cs();
+    sample_done_flag &= ~(1 << (channel + cur_fpga_cs * 4));
 #else
     daq_spi_clear_data_done_flag(channel);
 #endif
@@ -315,7 +317,7 @@ static void *hf_pf_over_current_event_service(void *arg)
     while (1) {
         send_type = get_send_type();
         for (uint8_t phase = 0; phase < 3; phase++) {
-            if(CFG_NOK == check_fpga_cfg_status(phase))continue;
+//            if(CFG_NOK == check_fpga_cfg_status(phase))continue;
             change_spi_cs_pin(phase);
             for (channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
                 if (check_over_current_sample_done(channel)) {
@@ -325,7 +327,6 @@ static void *hf_pf_over_current_event_service(void *arg)
                     }
                     memset(&g_over_current_data[phase][channel], 0, sizeof(over_current_data_t));
                     memset(curve_data, 0, sizeof(curve_data));
-                    g_over_current_data[phase][channel].phase = phase;
                     g_over_current_data[phase][channel].curve_len = length;
                     g_over_current_data[phase][channel].data_type = (channel<2)?HF_TYPE:PF_TYPE;
                     g_over_current_data[phase][channel].timestamp = read_over_current_event_utc(channel);
@@ -355,7 +356,7 @@ static void *hf_pf_over_current_event_service(void *arg)
                     curve_info[phase][channel].channel = channel;
                     curve_info[phase][channel].send_type = send_type;
                     msg.content.ptr = (void*)&curve_info[phase][channel];
-                    msg_send(&msg, data_send_pid);
+                    msg_try_send(&msg, data_send_pid);
 //                    send_over_current_curve(&g_over_current_data, channel, send_type);
 //                    memset(&g_over_current_data, 0, sizeof(over_current_data_t));
                     clear_over_current_sample_done_flag(channel);

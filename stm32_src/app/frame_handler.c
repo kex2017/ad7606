@@ -143,6 +143,7 @@ void get_dev_info_handler(void)
 void do_send_dev_info_msg(void)
 {
 	get_dev_info_handler();
+	send_dip_angle_data();
 	delay_ms(200);
 }
 

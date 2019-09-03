@@ -12,6 +12,7 @@
 #include "periph/rtt.h"
 #include "kldaq_fpga_spi.h"
 #include "over_current.h"
+#include "gps_sync.h"
 
 void daq_usage_help(void)
 {
@@ -20,6 +21,7 @@ void daq_usage_help(void)
    "    pd <channel> <threshold>:set pd tw change threshold\n"
    "    wrreg <channel> <reg> <value>:write reg\n"
    "    rdreg <channel> <reg>:read reg\n"
+   "    adjust <angle type>:<angle type>:roll/course\n"
    "    rddata <channel> <len> : read data from fpga\n"
    "    isdone <channel>:check if sample done\n"
    "    len <channel> :read data length\n"
@@ -52,6 +54,15 @@ int daq_command(int argc, char **argv)
         uint16_t  reg = (uint16_t)strtol(argv[3], NULL, 10);
         uint16_t value = daq_spi_read_reg(channel, reg);
         LOG_INFO("read reg with channel %d reg %d value %d!", channel, reg, value);
+    }
+    else if (strncmp(argv[1], "adjust", 7) == 0) {
+        if(!strncmp("roll", argv[2], strlen("roll"))){
+            adjust_roll_angle();
+        }
+        else if(!strncmp("course", argv[2], strlen("course"))){
+            adjust_course_angle();
+        }
+        LOG_INFO("adjust %s angle!", argv[2]);
     }
     else if (strncmp(argv[1], "peak", 5) == 0) {
         uint8_t  channel = (uint8_t)strtol(argv[2], NULL, 10);

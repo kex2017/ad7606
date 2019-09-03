@@ -1,4 +1,5 @@
 #include <stdint.h>
+
 #include "period_data.h"
 #include "fault_location_threads.h"
 #include "frame_encode.h"
@@ -11,6 +12,7 @@
 #include "periph/rtt.h"
 #include "type_alias.h"
 #include "data_send.h"
+#include "data_transfer.h"
 #include "daq.h"
 #include "gps_sync.h"
 #include "over_current.h"
@@ -83,7 +85,7 @@ uint8_t get_send_type(void)
 }
 
 
-void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel, uint8_t send_type)
+void send_over_current_curve(over_current_data_t* over_current_data, send_curve_info_t curve_info, uint8_t send_type)
 {
     uint16_t len = 0;
     uint8_t data[MAX_FRAME_LEN] = {0};
@@ -94,9 +96,9 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     uint32_t timestamp = over_current_data->timestamp;
 
     if(HF_TYPE == over_current_data->data_type)
-        logic_channal = over_current_data->phase * 4 + channel + 2;//hf A:2,3 B:6,7 C:10,11
+        logic_channal = curve_info.phase * 4 + curve_info.channel + 2;//hf A:2,3 B:6,7 C:10,11
     else
-        logic_channal = over_current_data->phase * 4 + channel - 2;//pf A:0,1 B:4,5 C:6,7
+        logic_channal = curve_info.phase * 4 + curve_info.channel - 2;//pf A:0,1 B:4,5 C:6,7
     pkg_num = over_current_data->curve_len / PACKET_DATA_LEN;
     if ((left_data_len = (over_current_data->curve_len % PACKET_DATA_LEN))) {
         pkg_num += 1;
@@ -104,18 +106,18 @@ void send_over_current_curve(over_current_data_t* over_current_data, uint8_t cha
     for (uint16_t i = 0; i < pkg_num; i++) {
         memset(pk_data, 0, PACKET_DATA_LEN);
         if (left_data_len && (i == pkg_num - 1)) {
-            read_curve_data(over_current_data->phase, channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, left_data_len);
+            read_curve_data(curve_info.phase, curve_info.channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, left_data_len);
 //            memcpy(pk_data, curve_data + i * PACKET_DATA_LEN, left_data_len);
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
                                                (uint8_t*)pk_data, left_data_len);
         }
         else {
-            read_curve_data(over_current_data->phase, channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, PACKET_DATA_LEN);
+            read_curve_data(curve_info.phase, curve_info.channel, i * PACKET_DATA_LEN, (uint8_t*)pk_data, PACKET_DATA_LEN);
 //            memcpy(pk_data, curve_data + i * PACKET_DATA_LEN, PACKET_DATA_LEN);
             len = current_mutation_data_encode(data, DEVICEOK, send_type, timestamp, over_current_data->one_sec_clk_cnt, over_current_data->ns_cnt, logic_channal, pkg_num, i,
                                                (uint8_t*)pk_data, PACKET_DATA_LEN);
         }
-        LOG_INFO("send over current %s curve data phase %s channel %d pkg num is %d cur pkg num is %d", (over_current_data->data_type==HF_TYPE)?"hf":"pf", (over_current_data->phase==0)?"A":(over_current_data->phase==1)?"B":"C", channel, pkg_num, i);
+        LOG_INFO("send over current %s curve data phase %s channel %d pkg num is %d cur pkg num is %d", (over_current_data->data_type==HF_TYPE)?"hf":"pf", (curve_info.phase==0)?"A":(curve_info.phase==1)?"B":"C", curve_info.channel, pkg_num, i);
         msg_send_pack(data, len);
         delay_ms(600);
     }
@@ -131,17 +133,14 @@ void send_dip_angle_data(void)
     msg_send_pack(data, len);
 }
 
-
-static msg_t send_task_rcv_queue[8];
+static msg_t send_task_rcv_queue[SEND_TASK_QUEUE_SIZE];
 
 static void upload_period_data(uint8_t send_type)
 {
     LOG_INFO("send cycle data");
     send_high_current_cycle_data(send_type);
     send_pf_current_cycle_data(send_type);
-    send_dip_angle_data();
 }
-#include "data_transfer.h"
 
 void *data_send_serv(void *arg)
 {
@@ -151,7 +150,7 @@ void *data_send_serv(void *arg)
     over_current_data_t* over_current_data = NULL;
     send_curve_info_t curve_info;
 
-    msg_init_queue(send_task_rcv_queue, 8);
+    msg_init_queue(send_task_rcv_queue, SEND_TASK_QUEUE_SIZE);
     while (1) {
         msg_receive(&msg);
         switch (msg.type) {
@@ -161,15 +160,10 @@ void *data_send_serv(void *arg)
             break;
         case MUTATION_TYPE:
             curve_info = *((send_curve_info_t*)msg.content.ptr);
-            LOG_INFO("start send channel %d mutation data...\r\n", curve_info.channel);
+            LOG_INFO("start send phase %d channel %d mutation data...\r\n", curve_info.phase, curve_info.channel);
             over_current_data = get_over_current_data(curve_info.phase, curve_info.channel);
             while(!get_ec20_link_flag())delay_ms(20);
-            send_over_current_curve(over_current_data, curve_info.channel, curve_info.send_type);
-//            for (uint16_t i = 0; i < sizeof(read_data_buf) / 2; i++) {
-//                if (((i + 1) % 20) == 0) printf("\r\n");
-//                printf("%d ", read_data_buf[i]);
-//            }
-//            printf("\r\n");
+            send_over_current_curve(over_current_data, curve_info, curve_info.send_type);
             break;
         default:
             break;

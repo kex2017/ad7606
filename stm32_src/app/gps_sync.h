@@ -20,7 +20,8 @@ typedef struct gy25_t {
     float pitch_angle; //俯仰角
     float roll_angle;  //横滚角
 } GY25;
-
+void adjust_roll_angle(void);
+void adjust_course_angle(void);
 GY25* get_gy25_dip_angle(void);
 void gy25_read_dip_angle(void);
 int update_rtc_time(int retry_count);

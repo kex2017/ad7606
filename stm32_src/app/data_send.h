@@ -11,6 +11,7 @@
 #include "kernel_types.h"
 #include "over_current.h"
 
+#define SEND_TASK_QUEUE_SIZE (16)
 
 #define PERIOD_DATA_TYPE 0
 #define MUTATION_TYPE 1
@@ -35,6 +36,8 @@ void clear_server_call_flag(void);
 
 uint8_t get_server_call_flag(void);
 
+void send_dip_angle_data(void);
+
 kernel_pid_t data_send_serv_init(void);
-void send_over_current_curve(over_current_data_t* over_current_data, uint8_t channel, uint8_t send_type);
+void send_over_current_curve(over_current_data_t* over_current_data, send_curve_info_t curve_info, uint8_t send_type);
 #endif /* APP_DATA_SEND_H_ */

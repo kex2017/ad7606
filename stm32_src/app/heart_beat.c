@@ -41,13 +41,14 @@ void *send_heart_beat_handler(void* arg)
  	(void) arg;
  	static int times = 0;
  	while (1) {
+
  	    daq_spi_chan_set_fpga_utc(rtt_get_counter());
  	    gy25_read_dip_angle();
+
  		delay_s(60);
-		if(times % 10 == 0)
-		{
-			do_send_dev_info_msg();
-		}
+        if (times % 10 == 0) {
+            do_send_dev_info_msg();
+        }
 		times ++;
 		LOG_INFO("Keep alive");
 		time_to_send_heart_msg();

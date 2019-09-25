@@ -61,8 +61,8 @@ typedef enum{
 #define CHA3_EVENT_UTC_TIME_H 0x30
 #define CHA3_EVENT_UTC_TIME_L 0x31
 
-#define SET_UTC_TIME_H 19
-#define SET_UTC_TIME_L 20
+#define SET_UTC_TIME_H 20
+#define SET_UTC_TIME_L 21
 
 #define LTC_OCR_REG 0x1F //发生超越门限，并且数据准备好
 #define LTC_LENGTH_REG 0x21 //数据长度寄存器

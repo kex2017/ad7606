@@ -364,7 +364,6 @@ static void *hf_pf_over_current_event_service(void *arg)
             }
         }
         delay_ms(200);
-        delay_s(5);
     }
     return NULL;
 }

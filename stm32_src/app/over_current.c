@@ -78,9 +78,8 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 hf_over_current_info_t g_hf_over_current_info[MAX_PHASE][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { {{0} }};
 pf_over_current_info_t g_pf_over_current_info[MAX_PHASE][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { {{0}} };
 
-over_current_data_t g_over_current_data[MAX_PHASE][OVER_CURRENT_CHANNEL_COUNT] = {0};
+over_current_data_t g_over_current_data[MAX_PHASE][OVER_CURRENT_CHANNEL_COUNT+1] = {0};
 uint16_t curve_data[MAX_FPGA_DATA_LEN/2];
-
 uint32_t g_hf_max[FPGA_PHASE_NUM][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 float g_pf_cur[FPGA_PHASE_NUM][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
 
@@ -199,7 +198,7 @@ void read_over_current_sample_data(uint8_t channel, uint8_t *data, uint32_t addr
 
     if(channel < 2){
         for(size_t i = 0; i < byte_len/2;i++){
-            p_data[i] = (uint16_t)(4096 * sin(PI * 2 * i / 4096) + 4096);//一个周期波形
+            p_data[i] = (uint16_t)(4096 * sin(PI * 2 * i / 4096) + 4096 );//一个周期波形
             p_data[i] = get_fpga_uint16_data(p_data[i]);
         }
     }

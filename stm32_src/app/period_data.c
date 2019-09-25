@@ -71,7 +71,7 @@ static void bat_sample_init(void)
     adc3_sample_init(&bat_val_channel, 1);
 }
 
-static void interval_do_bat_sample(void)
+void interval_do_bat_sample(void)
 {
     bat_do_sample_time_now = rtt_get_counter();
     if (bat_do_sample_time_now - bat_do_sample_time_start > BAT_SAMPLE_INTERVAL) {
@@ -107,7 +107,7 @@ void *period_data_serv(void *arg)
     uint16_t* interval_time = cfg_get_device_data_interval();
 
     while (1) {
-        interval_do_bat_sample();
+//        interval_do_bat_sample();
         interval_send_period_data(*interval_time);
         delay_ms(200);
     }

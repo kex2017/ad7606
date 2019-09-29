@@ -263,11 +263,18 @@ void update_cycle_data(uint8_t phase, uint8_t channel)
     g_hf_max[phase][channel] = 4000 + phase*100 + channel*10;
     g_pf_cur[phase][channel-2] = 300.0 + phase*10 + channel;
 #else
-    g_hf_max[phase][channel] = get_hf_over_current_max(channel);
+    if (channel < 2) {
+        g_hf_max[phase][channel] = get_hf_over_current_max(channel);
+    }
+    else {
+        uint64_t pf_sum = daq_spi_get_pf_sum_data(channel);
+        uint16_t sample_cnt = daq_spi_get_data_len(channel) / 2;
 
-    int64_t pf_sum = daq_spi_get_pf_sum_data(channel);
-    uint16_t sample_cnt = daq_spi_get_data_len(channel) / 2;
-    g_pf_cur[phase][channel-2] = sqrt(pf_sum / (double)sample_cnt);
+        sample_cnt = sample_cnt ? sample_cnt : 1536;
+
+
+        g_pf_cur[phase][channel - 2] = sqrt(pf_sum * 1.0 / (sample_cnt/3));
+    }
 #endif
 }
 
@@ -332,8 +339,8 @@ static void *hf_pf_over_current_event_service(void *arg)
                     save_curve_data(phase, channel, (uint8_t*)curve_data, length);
                     LOG_INFO("phase %s channel %d utc reg value %d", (phase==0)?"A":(phase==1)?"B":"C", channel, g_over_current_data[phase][channel].timestamp);
 #if ENABLE_DEBUG
-                    memset(curve_data, 0, sizeof(curve_data));
-                    read_curve_data(phase, channel, 0, (uint8_t*)curve_data, length);
+//                    memset(curve_data, 0, sizeof(curve_data));
+//                    read_curve_data(phase, channel, 0, (uint8_t*)curve_data, length);
                     printf("phase %s channel %d read data is :\r\n", (phase==0)?"A":(phase==1)?"B":"C", channel);
                     for (uint16_t i = 0; i < length / 2; i++) {
                         curve_data[i] = get_fpga_uint16_data(curve_data[i]);

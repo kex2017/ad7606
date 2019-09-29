@@ -259,10 +259,30 @@ int daq_spi_set_pf_threshold(uint8_t channel, uint64_t  threshold)
 
 uint64_t daq_spi_get_pf_sum_data(uint8_t channel)
 {
-    if(channel == PF_CHANNEL_1_NUM)
-        return (uint64_t)(daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_H)) << 32 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_M) << 16 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_L);
-    else if(channel == PF_CHANNEL_2_NUM)
-        return (uint64_t)(daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_H)) << 32 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_M) << 16 | daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_L);
+    uint16_t fpga_sum_data[3] = {0};
+    uint64_t sum = 0;
+
+    if(channel == PF_CHANNEL_1_NUM){
+        fpga_sum_data[0] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_H);
+        fpga_sum_data[1] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_M);
+        fpga_sum_data[2] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTA_L);
+
+        sum = fpga_sum_data[1] << 16 | fpga_sum_data[2];
+        sum = sum & 0xFFFFFFFF;
+        sum |= (uint64_t)fpga_sum_data[0] << 32;
+
+        return sum;
+    }
+    else if(channel == PF_CHANNEL_2_NUM){
+        fpga_sum_data[0] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_H);
+        fpga_sum_data[1] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_M);
+        fpga_sum_data[2] = daq_spi_read_reg(channel, LTC_GP_SQRT_CNTB_L);
+        sum = fpga_sum_data[1] << 16 | fpga_sum_data[2];
+        sum = sum & 0xFFFFFFFF;
+        sum |= (uint64_t)fpga_sum_data[0] << 32;
+
+        return sum;
+    }
     return 0;
 }
 

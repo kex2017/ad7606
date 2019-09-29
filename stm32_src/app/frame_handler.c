@@ -103,10 +103,10 @@ void set_channel_info_by_type(channel_info_t *channel_info)
     uint8_t phase = logic_channel / 4;
 
     if (channel_info->channel > 1) {
-        cfg_set_high_device_threshold(phase, channel, channel_info->threshold);
-        set_hf_over_current_threshold(phase, channel, channel_info->threshold);
-        cfg_set_high_device_changerate(phase, channel, channel_info->change_rate);
-        set_hf_over_current_changerate(phase, channel, channel_info->change_rate);
+        cfg_set_high_device_threshold(phase, channel-2, channel_info->threshold);
+        set_hf_over_current_threshold(phase, channel-2, channel_info->threshold);
+        cfg_set_high_device_changerate(phase, channel-2, channel_info->change_rate);
+        set_hf_over_current_changerate(phase, channel-2, channel_info->change_rate);
     }
     else {
         cfg_set_device_threshold(phase, channel, channel_info->threshold);

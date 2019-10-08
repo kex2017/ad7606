@@ -22,6 +22,10 @@ extern "C" {
 
 #define PF_CHAN_OFFSET 2
 
+#define STATUS_FREE 1
+#define STATUS_BUSY 0
+
+
 #define MAX_PF_FPGA_DATA_LEN (3072 * 2) //4k*2  4096
 
 #define HF_TYPE 0
@@ -39,6 +43,11 @@ typedef struct _over_current_data{
     uint8_t phase;
     uint8_t data_type;
 }over_current_data_t;
+
+typedef struct _over_current_status{
+    uint8_t happened_flag;
+    uint8_t send_over_flag;
+}over_current_status_t;
 
 typedef struct _hf_over_current_info {
     uint16_t threshold;
@@ -64,6 +73,10 @@ uint32_t get_hf_max(uint8_t phase, uint8_t channel);
 kernel_pid_t hf_pf_over_current_service_init(void);
 
 hf_over_current_info_t *get_hf_over_current_info(uint8_t phase, uint8_t channel);
+
+void set_over_current_happened_flag(uint8_t phase, uint8_t channel, uint8_t happened_flag);
+
+void set_over_current_send_over_flag(uint8_t phase, uint8_t channel, uint8_t send_over_flag);
 
 void set_hf_over_current_threshold(uint8_t phase, uint8_t channel, uint16_t threshold);
 void set_hf_over_current_changerate(uint8_t phase, uint8_t channel, uint16_t changerate);

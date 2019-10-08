@@ -78,6 +78,7 @@ uint16_t get_fpga_uint16_data(uint16_t data)
 hf_over_current_info_t g_hf_over_current_info[MAX_PHASE][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { {{0} }};
 pf_over_current_info_t g_pf_over_current_info[MAX_PHASE][MAX_PF_OVER_CURRENT_CHANNEL_COUNT] = { {{0}} };
 
+over_current_status_t over_current_status[MAX_PHASE][OVER_CURRENT_CHANNEL_COUNT] = {0};
 over_current_data_t g_over_current_data[MAX_PHASE][OVER_CURRENT_CHANNEL_COUNT+1] = {0};
 uint16_t curve_data[MAX_FPGA_DATA_LEN/2];
 uint32_t g_hf_max[FPGA_PHASE_NUM][MAX_HF_OVER_CURRENT_CHANNEL_COUNT] = { 0 };
@@ -105,6 +106,30 @@ void set_hf_over_current_changerate(uint8_t phase, uint8_t channel, uint16_t cha
 hf_over_current_info_t *get_hf_over_current_info(uint8_t phase, uint8_t channel)
 {
     return &g_hf_over_current_info[phase][channel];
+}
+
+uint8_t check_over_current_status_is_free(uint8_t phase, uint8_t channel)
+{
+    if (1 == over_current_status[phase][channel].happened_flag) {
+        if (1 == over_current_status[phase][channel].send_over_flag) {
+            return STATUS_FREE;
+        }
+        else {
+            return STATUS_BUSY;
+        }
+    }
+    else
+        return STATUS_FREE;
+}
+
+void set_over_current_happened_flag(uint8_t phase, uint8_t channel, uint8_t happened_flag)
+{
+    over_current_status[phase][channel].happened_flag = happened_flag;
+}
+
+void set_over_current_send_over_flag(uint8_t phase, uint8_t channel, uint8_t send_over_flag)
+{
+    over_current_status[phase][channel].send_over_flag = send_over_flag;
 }
 
 /******************pf over current info*******************/
@@ -323,13 +348,16 @@ static void *hf_pf_over_current_event_service(void *arg)
             if(CFG_NOK == check_fpga_cfg_status(phase))continue;
             change_spi_cs_pin(phase);
             for (channel = 0; channel < OVER_CURRENT_CHANNEL_COUNT; channel++) {
-                if (check_over_current_sample_done(channel)) {
+                if (check_over_current_sample_done(channel) && check_over_current_status_is_free(phase, channel)) {
+                    set_over_current_happened_flag(phase, channel, 1);
+                    set_over_current_send_over_flag(phase, channel, 0);
                     if ((length = read_over_current_sample_length(channel)) > MAX_FPGA_DATA_LEN) {
                         LOG_WARN("Get %s over current curve phase %s channel %d data length:%ld > MAX_FPGA_DATA_LEN, ignore it.", (channel<2)?"hf":"pf", (phase==0)?"A":(phase==1)?"B":"C", channel, (length));
                         continue;
                     }
                     memset(&g_over_current_data[phase][channel], 0, sizeof(over_current_data_t));
                     memset(curve_data, 0, sizeof(curve_data));
+
                     g_over_current_data[phase][channel].curve_len = length;
                     g_over_current_data[phase][channel].data_type = (channel<2)?HF_TYPE:PF_TYPE;
                     g_over_current_data[phase][channel].timestamp = read_over_current_event_utc(channel);

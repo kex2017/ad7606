@@ -121,6 +121,7 @@ void send_over_current_curve(over_current_data_t* over_current_data, send_curve_
         msg_send_pack(data, len);
         delay_ms(600);
     }
+    set_over_current_send_over_flag(curve_info.phase, curve_info.channel, 1);
 }
 
 void send_dip_angle_data(void)

@@ -1,4 +1,0 @@
-[submodule "RIOT"]
-	path = RIOT
-	url = 220.189.213.2:10000/embedded/RIOT
-	branch = 2019.01-branch-stm32f103-fl
